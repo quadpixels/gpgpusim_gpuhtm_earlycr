@@ -2603,6 +2603,9 @@ void do_append_rct_to_cat_request(addr_t addr, char rw, char append_or_remove,
 	matsc.addr = addr;
 	matsc.serial = serial;
 	matsc.life = life;
+	dim3 dummy;
+	dummy.x = dummy.y = dummy.z = (unsigned)(-1);
+	matsc.ctaidtid = CTAID_TID_Ty(dummy, dummy);
 	sharer_cmd_queue_to_cat.push_front(matsc);
 }
 
