@@ -43,6 +43,49 @@ struct MyAddrToSharersCommand {
 // for FLAG-0808
 extern void LogCommitEntrySize(unsigned commit_id, unsigned cuid, unsigned num);
 
+// set2 subtracted by delete_set plus append_set should equal set1
+unsigned UnorderedSetDiffSize (const std::unordered_set<addr_t>* set_to, const std::unordered_set<addr_t>* set_from,
+		std::unordered_set<addr_t>* delete_set, std::unordered_set<addr_t>* append_set) {
+	unsigned num_isect = 0;
+	std::unordered_set<addr_t>::const_iterator itr1, itr2;
+	for (itr1 = set_to->cbegin(); itr1 != set_to->cend(); itr1++) {
+		addr_t t = *itr1;
+		if (set_from->find(t) != set_from->end()) num_isect ++;
+		else { append_set->insert(t); }
+	}
+	for (itr2 = set_from->cbegin(); itr2 != set_from->end(); itr2++) {
+		addr_t t = *itr2;
+		if (set_to->find(t) == set_to->end()) { delete_set->insert(t); }
+	}
+	unsigned ret = set_to->size() + set_from->size() - 2 * num_isect;
+
+	if (ret != append_set->size() + delete_set->size()) {
+		printf("Ouch! ret=%u, append_set + delete_set sizes = %lu + %lu = %lu\n",
+			ret, append_set->size(), delete_set->size());
+		assert(false);
+	}
+
+	return ret;
+}
+
+void compute_rct_delta_size(unsigned int* p_size, bool* p_can_ignore,
+		std::unordered_set<addr_t> *wset_curr, std::unordered_set<addr_t> *wset_prev,
+		std::unordered_set<addr_t> *rset_curr, std::unordered_set<addr_t> *rset_prev,
+		std::unordered_set<addr_t> *wset_delete, std::unordered_set<addr_t> *wset_append,
+		std::unordered_set<addr_t> *rset_delete, std::unordered_set<addr_t> *rset_append) {
+	unsigned sz = 0; bool can_ignore = true;
+
+	const unsigned deltasize0 = UnorderedSetDiffSize(rset_curr, rset_prev, rset_delete, rset_append);
+	sz = sz + 4 * deltasize0;
+	if (deltasize0 > 0)	can_ignore = false;
+
+	const unsigned deltasize1 = UnorderedSetDiffSize(wset_curr, wset_prev, wset_delete, wset_append);
+	sz = sz + 4 * deltasize1;
+	if (deltasize1 > 0) can_ignore = false;
+
+	*p_can_ignore = can_ignore; *p_size = sz;
+}
+
 std::unordered_set<unsigned> g_tommy_aborted_cids;
 void PrintTommyAbortedCIDs() {
 	printf("Aborted CIDS:");
@@ -75,11 +118,11 @@ void GetCATSnapshots(std::unordered_set<addr_t>* write_set, std::unordered_set<a
 	write_set->clear(); read_set->clear();
 	for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr =
 		g_addr_to_sharers_w.begin(); itr != g_addr_to_sharers_w.end(); itr++) {
-		write_set->insert(itr->first);
+		if (itr->second.size() > 0) write_set->insert(itr->first);
 	}
 	for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr =
 		g_addr_to_sharers_r.begin(); itr != g_addr_to_sharers_r.end(); itr++) {
-		read_set->insert(itr->first);
+		if (itr->second.size() > 0) read_set->insert(itr->first);
 	}
 }
 
@@ -1641,6 +1684,7 @@ void commit_unit::cycle(unsigned long long time)
    } }
 
 
+   /*
    if (g_tommy_flag_1124) {
 	   if (gpu_sim_cycle + gpu_tot_sim_cycle - g_last_tommy_packet_ts > 10000) {
 		   g_tommy_packet_count_tout ++;
@@ -1663,6 +1707,7 @@ void commit_unit::cycle(unsigned long long time)
 		   g_cat_r_snapshot_0.clear();
 	   }
    }
+   */
 
    /*
    if (time > 100000 and (time % interval) == 0) {
@@ -1811,6 +1856,31 @@ void commit_unit::process_coalesced_input_parallel( mem_fetch *input_msg, unsign
          } else {
             transfer_ops_to_queue(VALIDATE); 
          }
+
+         if (g_tommy_flag_1124 == true) { // Old traffic modelling.
+		   if (g_tommy_flag_0729 || g_tommy_flag_0808) {
+				g_cat_update_serial ++;
+				unsigned size; bool can_ignore = true;
+
+				wset_delete.clear(); wset_append.clear();
+				rset_delete.clear(); rset_append.clear();
+
+				GetCATSnapshots(&g_cat_w_snapshot_1, &g_cat_r_snapshot_1);
+
+				compute_rct_delta_size(&size, &can_ignore,
+					&g_cat_w_snapshot_1, &g_cat_w_snapshot_0,
+					&g_cat_r_snapshot_1, &g_cat_r_snapshot_0,
+					&wset_delete, &wset_append,
+					&rset_delete, &rset_append);
+				if (!can_ignore) {
+					send_reply_tommy(-999, 0, 0, gpu_sim_cycle + gpu_tot_sim_cycle, CU_TOMMY_1, size, g_cat_update_serial);
+				}
+
+				g_cat_r_snapshot_0 = g_cat_r_snapshot_1;
+				g_cat_w_snapshot_0 = g_cat_w_snapshot_1;
+		   }
+	  }
+
       } break; 
    case TX_DONE_FILL:
    case TX_SKIP: {
@@ -1833,25 +1903,27 @@ void commit_unit::process_coalesced_input_parallel( mem_fetch *input_msg, unsign
             m_input_queue.pop_front();
 
             if (g_tommy_flag_1124 == true) { // Old traffic modelling.
-//            	   if (g_tommy_flag_0729 || g_tommy_flag_0808) {
-//            			g_cat_update_serial ++;
-//            			unsigned size; bool can_ignore = true;
-//
-//            			wset_delete.clear(); wset_append.clear();
-//            			rset_delete.clear(); rset_append.clear();
-//
-//            			GetCATSnapshots(&g_cat_w_snapshot_1, &g_cat_r_snapshot_1);
-//
-//            			compute_rct_delta_size(&size, &can_ignore,
-//            				&rset_delete, &rset_append,
-//            				&wset_delete, &wset_append);
-//            			if (!can_ignore) {
-//            				send_reply_tommy(-999, 0, 0, gpu_sim_cycle + gpu_tot_sim_cycle, CU_TOMMY_1, size, g_cat_update_serial);
-//            			}
-//
-//            			g_cat_r_snapshot_0 = g_cat_r_snapshot_1;
-//            			g_cat_w_snapshot_0 = g_cat_w_snapshot_1;
-//            	   }
+            	   if (g_tommy_flag_0729 || g_tommy_flag_0808) {
+            			g_cat_update_serial ++;
+            			unsigned size; bool can_ignore = true;
+
+            			wset_delete.clear(); wset_append.clear();
+            			rset_delete.clear(); rset_append.clear();
+
+            			GetCATSnapshots(&g_cat_w_snapshot_1, &g_cat_r_snapshot_1);
+
+            			compute_rct_delta_size(&size, &can_ignore,
+            				&g_cat_w_snapshot_1, &g_cat_w_snapshot_0,
+							&g_cat_r_snapshot_1, &g_cat_r_snapshot_0,
+            				&wset_delete, &wset_append,
+            				&rset_delete, &rset_append);
+            			if (!can_ignore) {
+            				send_reply_tommy(-999, 0, 0, gpu_sim_cycle + gpu_tot_sim_cycle, CU_TOMMY_1, size, g_cat_update_serial);
+            			}
+
+            			g_cat_r_snapshot_0 = g_cat_r_snapshot_1;
+            			g_cat_w_snapshot_0 = g_cat_w_snapshot_1;
+            	   }
               }
          }
       } break; 
@@ -2462,6 +2534,9 @@ void commit_unit::send_reply( unsigned sid, unsigned tpc, unsigned wid, unsigned
             case CU_FAIL:
                 if (wcmt_entry.all_validation_done()) {
                     send_reply_coalesced(sid, tpc, wid, commit_id, reply_type);
+                }
+
+                if (wcmt_entry.all_validation_done() || g_tommy_flag_1124 == true) {
                     { // Old traffic modelling.
 						if (g_tommy_flag_0729 || g_tommy_flag_0808) {
 							unsigned size; bool can_ignore = true;
@@ -2475,8 +2550,8 @@ void commit_unit::send_reply( unsigned sid, unsigned tpc, unsigned wid, unsigned
 								compute_rct_delta_size(&size, &can_ignore,
 									&wset_curr, &g_prev_wsets,
 									&rset_curr, &g_prev_rsets,
-									&rset_delete, &rset_append,
-									&wset_delete, &wset_append);
+									&wset_delete, &wset_append,
+									&rset_delete, &rset_append);
 
 								g_prev_rsets = rset_curr;
 								g_prev_wsets = wset_curr;
@@ -2487,8 +2562,8 @@ void commit_unit::send_reply( unsigned sid, unsigned tpc, unsigned wid, unsigned
 								compute_rct_delta_size(&size, &can_ignore,
 									&g_cat_w_snapshot_1, &g_cat_w_snapshot_0,
 									&g_cat_r_snapshot_1, &g_cat_r_snapshot_0,
-									&rset_delete, &rset_append,
-									&wset_delete, &wset_append);
+									&wset_delete, &wset_append,
+									&rset_delete, &rset_append);
 								g_cat_w_snapshot_0 = g_cat_w_snapshot_1;
 								g_cat_r_snapshot_0 = g_cat_r_snapshot_1;
 							}
@@ -2546,53 +2621,6 @@ void commit_unit::send_reply_scalar( unsigned sid, unsigned tpc, unsigned wid, u
     r->set_is_transactional();
     r->set_sub_partition_id( m_partition_id );
     m_response_queue.push_back(r);
-}
-
-// set2 subtracted by delete_set plus append_set should equal set1
-static unsigned UnorderedSetDiffSize (const std::unordered_set<addr_t>* set1, const std::unordered_set<addr_t>* set2,
-		std::unordered_set<addr_t>* delete_set, std::unordered_set<addr_t>* append_set) {
-	unsigned num_isect = 0;
-	std::unordered_set<addr_t>::const_iterator itr1, itr2;
-	for (itr1 = set1->cbegin(); itr1 != set1->cend(); itr1++) {
-		addr_t t = *itr1;
-		if (set2->find(t) != set2->end()) num_isect ++;
-		else { append_set->insert(t); }
-	}
-	for (itr2 = set2->cbegin(); itr2 != set2->end(); itr2++) {
-		addr_t t = *itr2;
-		if (set1->find(t) == set1->end()) { delete_set->insert(t); }
-	}
-	unsigned ret = set1->size() + set2->size() - 2 * num_isect;
-
-	if (ret != append_set->size() + delete_set->size()) {
-		printf("Ouch! ret=%u, append_set + delete_set sizes = %lu + %lu = %lu\n",
-			ret, append_set->size(), delete_set->size());
-		assert(false);
-	}
-
-	return ret;
-}
-
-void commit_unit::compute_rct_delta_size(unsigned int* p_size, bool* p_can_ignore,
-		std::unordered_set<addr_t> *wset_curr, std::unordered_set<addr_t> *wset_prev,
-		std::unordered_set<addr_t> *rset_curr, std::unordered_set<addr_t> *rset_prev,
-		std::unordered_set<addr_t> *rset_delete, std::unordered_set<addr_t> *rset_append,
-		std::unordered_set<addr_t> *wset_delete, std::unordered_set<addr_t> *wset_append) {
-	unsigned sz = 0; bool can_ignore = true;
-
-	if (*rset_curr != *rset_prev/*g_prev_rsets*/) {
-		can_ignore = false;
-		sz = sz + 4 * UnorderedSetDiffSize(rset_curr, rset_prev, rset_delete, rset_append);
-//		prev_rsets = tmp;
-	}
-
-	if (*wset_curr != *wset_prev/*g_prev_wsets*/) {
-		can_ignore = false;
-		sz = sz + 4 * UnorderedSetDiffSize(wset_curr, wset_prev, wset_delete, wset_append);
-//		g_prev_wsets = tmp;
-	}
-
-	*p_can_ignore = can_ignore; *p_size = sz;
 }
 
 void do_append_rct_to_cat_request(addr_t addr, char rw, char append_or_remove,

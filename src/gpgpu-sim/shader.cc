@@ -130,6 +130,17 @@ std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >
    	   tx_log_walker::addr_to_sharers_w;
 std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >
    	   tx_log_walker::addr_to_sharers_r;
+extern unsigned UnorderedSetDiffSize (const std::unordered_set<addr_t>* set1, const std::unordered_set<addr_t>* set2,
+		std::unordered_set<addr_t>* delete_set, std::unordered_set<addr_t>* append_set);
+std::unordered_set<addr_t> dummy_cat_w_snapshot_0, dummy_cat_w_snapshot_1, dummy_cat_r_snapshot_0, dummy_cat_r_snapshot_1;
+extern void compute_rct_delta_size(unsigned int* p_size, bool* p_can_ignore,
+		std::unordered_set<addr_t> *wset_curr, std::unordered_set<addr_t> *wset_prev,
+		std::unordered_set<addr_t> *rset_curr, std::unordered_set<addr_t> *rset_prev,
+		std::unordered_set<addr_t> *rset_delete, std::unordered_set<addr_t> *rset_append,
+		std::unordered_set<addr_t> *wset_delete, std::unordered_set<addr_t> *wset_append);
+
+extern void GetCATSnapshots(std::unordered_set<addr_t>* write_set, std::unordered_set<addr_t>* read_set);
+extern int g_cat_update_serial;
 
 struct MyAddrToSharersCommand {
 	MyAddrToSharersCommand() {
@@ -6675,7 +6686,7 @@ void tx_log_walker::intra_warp_conflict_detection(warp_inst_t &inst,
 		printf(" L_CAT size[%lu,%lu], ", addr_to_sharers_w.size(),   addr_to_sharers_r.size());
 		printf("\x1B[0m");
 		if (!g_tommy_flag_1124) { printf("\x1B[34m"); }
-		printf(" G_CAT size[%lu,%lu]\n", g_addr_to_sharers_w.size(), g_addr_to_sharers_r.size());
+		printf(" G_CAT size[%lu,%lu]", g_addr_to_sharers_w.size(), g_addr_to_sharers_r.size());
 		printf("\x1B[0m");
 		printf(" lastTS=%llu\n", g_last_tommy_packet_ts);
 		if (tommy_0729_global_capacity > 0) { assert (g_addr_to_sharers_r.size() + g_addr_to_sharers_w.size() <= tommy_0729_global_capacity); }
@@ -8357,6 +8368,7 @@ void tx_log_walker_warpc::send_tx_pass_fail(warp_commit_tx_t &cmt_warp,
 
 // process replies (possibly coalesced ones) from commit unit 
 // return true if this is a commit unit reply (and processed)
+
 bool tx_log_walker_warpc::process_commit_unit_reply(mem_fetch *mf) {
 	// filter out the non-tx messages
 	if (mf->get_access_type() != TX_MSG)
@@ -8409,10 +8421,9 @@ bool tx_log_walker_warpc::process_commit_unit_reply(mem_fetch *mf) {
 		if (g_tommy_flag_1124) {
 
 			int serial = mf->rct_to_cat_serial_number;
+
 			if (serial != -999) {
 				int applied = 0;
-
-
 				for (std::deque<struct MyAddrToSharersCommand>::iterator itr = sharer_cmd_queue_to_cat.begin();
 						itr != sharer_cmd_queue_to_cat.end(); itr++) {
 					struct MyAddrToSharersCommand& cmd = *itr;
@@ -8432,19 +8443,17 @@ bool tx_log_walker_warpc::process_commit_unit_reply(mem_fetch *mf) {
 						(*ptr)[addr][ownerid].created_time = gpu_sim_cycle + gpu_tot_sim_cycle;
 						(*ptr)[addr][ownerid].addr         = addr;
 					} else if (cmd.append_or_remove == 'R') {
-						std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr0 = ptr->begin();
+						std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr0 = ptr->find(addr);
 						if (itr0 != ptr->end()) { ptr->erase(itr0); }
 					}
 
 					applied ++;
 				}
-
-
-				printf("[%llu vs %llu delta=%d FLAG 1124] SID=%d table sizes = [%lu,%lu], versus [%lu,%lu], %d cmds applied @ SN=%d\n",
+				/*printf("[%llu vs %llu delta=%d FLAG 1124] SID=%d table sizes = [%lu,%lu], versus [%lu,%lu], %d cmds applied @ SN=%d\n",
 					gpu_sim_cycle + gpu_tot_sim_cycle, mf->rct_to_cat_timestamp,
 					(gpu_sim_cycle + gpu_tot_sim_cycle - mf->rct_to_cat_timestamp),
 					m_core->get_sid(), addr_to_sharers_w.size(), addr_to_sharers_r.size(),
-					g_addr_to_sharers_w.size(), g_addr_to_sharers_r.size(), applied, serial);
+					g_addr_to_sharers_w.size(), g_addr_to_sharers_r.size(), applied, serial);*/
 			}
 
 			/*
@@ -8460,8 +8469,166 @@ bool tx_log_walker_warpc::process_commit_unit_reply(mem_fetch *mf) {
 			}
 			printf("\n");*/
 
-//			addr_to_sharers_w = g_addr_to_sharers_w;
-	//		addr_to_sharers_r = g_addr_to_sharers_r;
+
+			std::unordered_set<addr_t> dummy_rset_append, dummy_rset_delete, dummy_wset_append, dummy_wset_delete;
+
+			// Sanity Check (OK, may delete ------ 20151129
+			/*
+			{
+				std::unordered_set<addr_t> dummy_r, dummy_w;
+				for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr =
+					addr_to_sharers_r.begin(); itr != addr_to_sharers_r.end(); itr++) {
+					dummy_r.insert(itr->first);
+				}
+				for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr =
+					addr_to_sharers_w.begin(); itr != addr_to_sharers_w.end(); itr++) {
+					dummy_w.insert(itr->first);
+				}
+				if (dummy_w != dummy_cat_w_snapshot_0) {
+					printf("Size of W list: %d vs %d\n", dummy_w.size(), dummy_cat_w_snapshot_0.size());
+					for (std::unordered_set<addr_t>::iterator itr = dummy_w.begin(); itr != dummy_w.end(); itr++) {
+						if (dummy_cat_w_snapshot_0.find(*itr) == dummy_cat_w_snapshot_0.end()) {
+							printf("Addr %p in LHS, but not in RHS\n", *itr);
+						}
+					}
+					for (std::unordered_set<addr_t>::iterator itr = dummy_cat_w_snapshot_0.begin(); itr != dummy_cat_w_snapshot_0.end(); itr++) {
+						if (dummy_w.find(*itr) == dummy_w.end()) {
+							printf("Addr %p in RHS, but not in LHS\n", *itr);
+						}
+					}
+					assert(0);
+				}
+				assert (dummy_r == dummy_cat_r_snapshot_0);
+			}*/
+
+#if 0
+		   GetCATSnapshots(&dummy_cat_w_snapshot_1, &dummy_cat_r_snapshot_1);
+		   unsigned size; bool can_ignore = false;
+		   dummy_wset_delete.clear(); dummy_wset_append.clear();
+		   dummy_rset_delete.clear(); dummy_rset_append.clear();
+			compute_rct_delta_size(&size, &can_ignore,
+				&dummy_cat_w_snapshot_1, &dummy_cat_w_snapshot_0,
+				&dummy_cat_r_snapshot_1, &dummy_cat_r_snapshot_0,
+				&dummy_wset_delete, &dummy_wset_append,
+				&dummy_rset_delete, &dummy_rset_append);
+
+			dummy_cat_w_snapshot_0 = dummy_cat_w_snapshot_1;
+			dummy_cat_r_snapshot_0 = dummy_cat_r_snapshot_1;
+
+			const char * cmd = "RARA";
+			const char * who = "RRWW";
+
+			for (int i=0; i<4; i++) {
+				std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >* ptr;
+
+				std::unordered_set<addr_t>* operand = NULL;
+				if (who[i] == 'R') {
+					ptr = &addr_to_sharers_r;
+					if (cmd[i] == 'R') operand = &dummy_rset_delete;
+					else if (cmd[i] == 'A') operand = &dummy_rset_append;
+				} else if (who[i] == 'W') {
+					ptr = &addr_to_sharers_w;
+					if (cmd[i] == 'R') operand = &dummy_wset_delete;
+					else if (cmd[i] == 'A') operand = &dummy_wset_append;
+				}
+
+				for (std::unordered_set<addr_t>::iterator itr2 = operand->begin(); itr2 != operand->end(); itr2++) {
+					addr_t addr = *itr2;
+					CTAID_TID_Ty ownerid;
+					if (cmd[i] == 'A') {
+//						if (ptr->find(addr) == ptr->end()) (*ptr)[addr] = std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo>();
+						(*ptr)[addr][ownerid] = AddrOwnerInfo();
+					} else if (cmd[i] == 'R') {
+						std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr0 = ptr->find(addr);
+						if (itr0 != ptr->end()) { ptr->erase(itr0); }
+					}
+				}
+			}
+
+			{
+				std::unordered_set<addr_t> dummy_r, dummy_w;
+				for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr =
+					addr_to_sharers_r.begin(); itr != addr_to_sharers_r.end(); itr++) {
+					dummy_r.insert(itr->first);
+				}
+				for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr =
+					addr_to_sharers_w.begin(); itr != addr_to_sharers_w.end(); itr++) {
+					dummy_w.insert(itr->first);
+				}
+				bool ok = true;
+				if (dummy_w != dummy_cat_w_snapshot_1) {
+					ok = false;
+					printf("Size of W list: %d vs %d\n", dummy_w.size(), dummy_cat_w_snapshot_1.size());
+					for (std::unordered_set<addr_t>::iterator itr = dummy_w.begin(); itr != dummy_w.end(); itr++) {
+						if (dummy_cat_w_snapshot_1.find(*itr) == dummy_cat_w_snapshot_1.end()) {
+							printf("(W table) Addr %p in LHS, but not in RHS\n", *itr);
+						}
+					}
+					for (std::unordered_set<addr_t>::iterator itr = dummy_cat_w_snapshot_1.begin(); itr != dummy_cat_w_snapshot_1.end(); itr++) {
+						if (dummy_w.find(*itr) == dummy_w.end()) {
+							printf("(W table) Addr %p in RHS, but not in LHS\n", *itr);
+						}
+					}
+				}
+				if (dummy_r != dummy_cat_r_snapshot_1) {
+					ok = false;
+					printf("Size of W list: %d vs %d\n", dummy_r.size(), dummy_cat_r_snapshot_1.size());
+					for (std::unordered_set<addr_t>::iterator itr = dummy_r.begin(); itr != dummy_r.end(); itr++) {
+						if (dummy_cat_r_snapshot_1.find(*itr) == dummy_cat_r_snapshot_1.end()) {
+							printf("(R table) Addr %p in LHS, but not in RHS\n", *itr);
+						}
+					}
+					for (std::unordered_set<addr_t>::iterator itr = dummy_cat_r_snapshot_1.begin(); itr != dummy_cat_r_snapshot_1.end(); itr++) {
+						if (dummy_r.find(*itr) == dummy_r.end()) {
+							printf("(R table) Addr %p in RHS, but not in LHS\n", *itr);
+						}
+					}
+				}
+				if (ok == false) assert(0);
+			}
+#endif
+
+#if 0
+			addr_to_sharers_w.clear();
+			addr_to_sharers_r.clear();
+
+			// The following works correctly, 268583 cycles
+			/*
+			for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator
+				itr = g_addr_to_sharers_w.begin(); itr != g_addr_to_sharers_w.end(); itr++) {
+				CTAID_TID_Ty ownerid;
+				ownerid.ctaid.x = ownerid.tid.x = -1;
+				addr_to_sharers_w[itr->first][ownerid] = AddrOwnerInfo();
+			}
+
+			for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator
+				itr = g_addr_to_sharers_r.begin(); itr != g_addr_to_sharers_r.end(); itr++) {
+				CTAID_TID_Ty ownerid;
+				ownerid.ctaid.x = ownerid.tid.x = -1;
+				addr_to_sharers_r[itr->first][ownerid] = AddrOwnerInfo();
+			}
+			*/
+
+			// The following works correctly, 268583 cycles
+			/*
+			dummy_cat_w_snapshot_1.clear();
+			dummy_cat_r_snapshot_1.clear();
+			GetCATSnapshots(&dummy_cat_w_snapshot_1, &dummy_cat_r_snapshot_1);
+			std::unordered_set<addr_t>::iterator itr;
+			for (itr = dummy_cat_w_snapshot_1.begin(); itr != dummy_cat_w_snapshot_1.end(); itr++) {
+				CTAID_TID_Ty ownerid;
+				ownerid.ctaid.x = ownerid.tid.x = -1;
+				addr_to_sharers_w[*itr][ownerid] = AddrOwnerInfo();
+			}
+			for (itr = dummy_cat_r_snapshot_1.begin(); itr != dummy_cat_r_snapshot_1.end(); itr++) {
+				CTAID_TID_Ty ownerid;
+				ownerid.ctaid.x = ownerid.tid.x = -1;
+				addr_to_sharers_r[*itr][ownerid] = AddrOwnerInfo();
+			}*/
+
+			//addr_to_sharers_w = g_addr_to_sharers_w;
+			//addr_to_sharers_r = g_addr_to_sharers_r;
+#endif
 		}
 
 		break;
@@ -8685,7 +8852,7 @@ bool tx_log_walker::shouldAbort0729 (ptx_thread_info* pti, bool use_word_addr, c
 					printf("assertion failed on cid=(%d,%d,%d)-(%d,%d,%d)\n",
 						ctaidtid.ctaid.x, ctaidtid.ctaid.y, ctaidtid.ctaid.z,
 						ctaidtid.tid.x,   ctaidtid.tid.y,   ctaidtid.tid.z   );
-					assert(0); // commented out after adding TOMMY_FLAG_1124
+//					assert(0); // commented out after adding TOMMY_FLAG_1124
 				}
 			}
 		}
@@ -8726,7 +8893,7 @@ bool tx_log_walker::shouldAbort0729 (ptx_thread_info* pti, bool use_word_addr, c
 					printf("assertion failed on cid=(%d,%d,%d)-(%d,%d,%d)\n",
 											ctaidtid.ctaid.x, ctaidtid.ctaid.y, ctaidtid.ctaid.z,
 											ctaidtid.tid.x,   ctaidtid.tid.y,   ctaidtid.tid.z   );
-					assert(0); // commented out after adding TOMMY_FLAG_1124
+//					assert(0); // commented out after adding TOMMY_FLAG_1124
 				}
 			}
 		}

@@ -545,11 +545,6 @@ private:
     // send a coalesced reply packet to a specific core 
     void send_reply_coalesced( unsigned sid, unsigned tpc, unsigned wid, unsigned commit_id, enum mf_type reply_type );
 
-    void compute_rct_delta_size (unsigned int* p_size, bool* p_can_ignore,
-    		std::unordered_set<addr_t> *wset_curr, std::unordered_set<addr_t> *wset_prev,
-    		std::unordered_set<addr_t> *rset_curr, std::unordered_set<addr_t> *rset_prev,
-    		std::unordered_set<addr_t> *rset_delete, std::unordered_set<addr_t> *rset_append,
-    		std::unordered_set<addr_t> *wset_delete, std::unordered_set<addr_t> *wset_append);
     void send_reply_tommy (unsigned sid, unsigned tpc, unsigned wid, unsigned commit_id, enum mf_type reply_type,
     		unsigned size, int serial);
 
