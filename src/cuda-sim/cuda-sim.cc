@@ -1226,6 +1226,7 @@ static unsigned get_tex_datasize( const ptx_instruction *pI, ptx_thread_info *th
    return data_size; 
 }
 
+std::set<new_addr_type> stagger_block_addrs;
 void ptx_thread_info::ptx_exec_inst( warp_inst_t &inst, unsigned lane_id)
 {
 	bool should_print = false, break1 = false;
@@ -1285,7 +1286,10 @@ void ptx_thread_info::ptx_exec_inst( warp_inst_t &inst, unsigned lane_id)
 				g_stagger2_count--;
 			}
 		} else if ((getenv("TOMMY_FLAG_0808") != NULL) && (is_tos_trans == true)) { // FIX FOR 0818!
-			scc->m_stats->gpgpu_n_shmem_bank_access[scc->m_sid]++;
+			new_addr_type block_stagger_addr = staggered_addr / 128;
+			if (stagger_block_addrs.find(block_stagger_addr) == stagger_block_addrs.end())
+				scc->m_stats->gpgpu_n_shmem_bank_access[scc->m_sid]++;
+			stagger_block_addrs.insert(block_stagger_addr);
 			// Copied from instructions.cc
 			const operand_info &dst = pI->dst();
 			const operand_info &src1 = pI->src1();

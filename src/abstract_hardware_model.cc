@@ -2009,6 +2009,7 @@ void simt_stack::update( simt_mask_t &thread_done, simt_mask_t thread_stagger, a
 	*/
 }
 
+extern std::set<new_addr_type> stagger_block_addrs;
 bool Cartographer_lookupPTXSource(unsigned pc, std::string* sz);
 void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpId)
 {
@@ -2041,6 +2042,7 @@ void core_t::execute_warp_inst_t(warp_inst_t &inst, unsigned warpId)
 		printf(", is_tx:%d\n", inst.in_transaction);
 	}
 
+	stagger_block_addrs.clear();
     for ( unsigned t=0; t < m_warp_size; t++ ) {
         if( inst.active(t) ) {
             if(warpId==(unsigned (-1)))
