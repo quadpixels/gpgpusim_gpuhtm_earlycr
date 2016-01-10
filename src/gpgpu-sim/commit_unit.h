@@ -546,7 +546,8 @@ private:
     void send_reply_coalesced( unsigned sid, unsigned tpc, unsigned wid, unsigned commit_id, enum mf_type reply_type );
 
     void send_reply_tommy (unsigned sid, unsigned tpc, unsigned wid, unsigned commit_id, enum mf_type reply_type,
-    		unsigned size, int serial);
+    		unsigned size, int serial, std::unordered_set<addr_t>*, std::unordered_set<addr_t>*,
+    				std::unordered_set<addr_t>*, std::unordered_set<addr_t>*);
 
     // if not done yet, allocate entries all the way up to the given commit_id
     void allocate_to_cid(int commit_id, enum mf_type type); 
@@ -606,6 +607,9 @@ private:
     void check_read_set_version(const commit_entry &ce); 
 
     bool tommy_packet_sent;
+    std::unordered_map<addr_t, std::unordered_set<CTAID_TID_Ty> > addr_to_sharers_w, addr_to_sharers_r;
+    std::unordered_set<addr_t> addr_write_set_0, addr_write_set_1, addr_read_set_0, addr_read_set_1;
+    void GetCATSnapshotsMy(std::unordered_set<addr_t>* write_set, std::unordered_set<addr_t>* read_set);
 public:
     void appendAddressSharer(addr_t addr, const commit_entry* ce, char read_write);
     void removeAddressSharer(             const commit_entry* ce, char read_write, bool is_success);

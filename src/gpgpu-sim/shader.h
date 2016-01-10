@@ -2313,8 +2313,10 @@ protected:
 
    std::list<warp_inst_t> m_finish_commit_q;
 public:
-static std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >
+   static std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >
    	   addr_to_sharers_w, addr_to_sharers_r;
+   std::bitset<256> addr_w_signature, addr_r_signature;
+   bool cat_use_bf;
    std::unordered_map<addr_t, unsigned long long> ctime_r, ctime_w;
    std::vector<AddrOwnerInfo> owner_info_r, owner_info_w;
 

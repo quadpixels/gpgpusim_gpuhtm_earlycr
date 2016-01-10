@@ -170,7 +170,7 @@ unsigned mem_fetch::get_num_flits(bool simt_to_mem){
          sz = size(); 
       }
    }
-
+   if (icnt_flit_size == 0) return 1; // 2016-01-09 Hack
    return (sz/icnt_flit_size) + ( (sz % icnt_flit_size)? 1:0);
 }
 

@@ -36,6 +36,7 @@
 
 extern bool g_tommy_flag_0808, g_tommy_flag_0729;
 extern int g_tommy_flag_1028;
+extern unsigned g_tommy_1028_lookups, g_tommy_1028_lines;
 extern unsigned long g_cat_look_delays, g_cat_look_hazards;
 
 // command line options 
@@ -368,12 +369,27 @@ bool Scoreboard::pendingWrites(unsigned wid) const
 void Scoreboard::reserveTMToken(const warp_inst_t *inst) 
 {
 	int wid = inst->warp_id();
+	// 2016-01-06: Only compute unique words
 	if (g_tommy_flag_1028 > 0 && (g_tommy_flag_0808)) { // Only P&G needs to do lookup here.
 		if (m_tm_token.find(wid) != m_tm_token.end()) {
 			if (inst->is_load() || inst->is_store()) {
 				const int ww = (g_tommy_flag_1028 == 1) ? wid : 0;
 				if (cat_lookup_until[ww] <= gpu_sim_cycle + gpu_tot_sim_cycle) {
-					const int extra_cycle = (inst->get_active_mask().count() - 1) / 4 + 1;
+
+					const int nlookups = (inst->get_active_mask().count() - 1);
+					std::set<new_addr_type> blocks;
+					for (int i=0; i<inst->warp_size(); i++) {
+						if (inst->active(i) == false) continue;
+						const new_addr_type addr = inst->get_addr(i), blockaddr = addr / 128;
+						blocks.insert(blockaddr);
+					}
+
+//					const int extra_cycle = (inst->get_active_mask().count() - 1) / 4 + 1;
+					const int extra_cycle = (blocks.size() - 1) / 4 + 1;
+
+					g_tommy_1028_lines   += blocks.size();
+					g_tommy_1028_lookups += nlookups;
+
 					cat_lookup_until[ww] = gpu_sim_cycle + gpu_tot_sim_cycle + extra_cycle;
 					g_cat_look_delays ++;
 				}

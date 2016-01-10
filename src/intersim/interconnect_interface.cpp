@@ -564,16 +564,16 @@ void write_out_buf(int output, Flit *flit) {
 
 void transfer2boundary_buf(int output) {
 	Flit* flit;
-   unsigned vc;
-   for (vc=0; vc<g_num_vcs;vc++) {
-      if ( !ejection_buf[output][vc].empty() && !clock_boundary_buf[output][vc].is_full() ) {
-         flit = ejection_buf[output][vc].front();
-         ejection_buf[output][vc].pop();
-         clock_boundary_buf[output][vc].push_flit_data( flit->data, flit->tail);
-         traffic[flit->net_num]->credit_return_queue[output].push(flit); //will send back credit		
-         if ( flit->head ) {
-            assert (flit->dest == output);
-         }
+    unsigned vc;
+    for (vc=0; vc<g_num_vcs;vc++) {
+        if ( !ejection_buf[output][vc].empty() && !clock_boundary_buf[output][vc].is_full() ) {
+            flit = ejection_buf[output][vc].front();
+            ejection_buf[output][vc].pop();
+            clock_boundary_buf[output][vc].push_flit_data( flit->data, flit->tail);
+            traffic[flit->net_num]->credit_return_queue[output].push(flit); //will send back credit
+            if ( flit->head ) {
+               assert (flit->dest == output);
+            }
 #if DOUB
          cout <<"Traffic " <<nc<<" push out flit to (mapped)" << output <<endl;
 #endif

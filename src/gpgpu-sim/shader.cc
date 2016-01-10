@@ -110,7 +110,7 @@ class CartographerTimeSeries;
 extern CartographerTimeSeries* g_cartographerts;
 extern unsigned num_tommy_packets, cum_tommy_packet_delay, tommy_0729_global_capacity, g_watched_tid;
 extern int g_print_simt_stack_wid, g_print_simt_stack_sid, g_tommy_break_cycle;
-extern bool g_tommy_flag_0808, g_tommy_flag_0808_1, g_tommy_flag_0729, g_tommy_flag_1124;
+extern bool g_tommy_flag_0808, g_tommy_flag_0808_1, g_tommy_flag_0729, g_tommy_flag_1124, g_tommy_flag_1124_1;
 // 2015-11-11
 extern unsigned tommy_cat_acc_addremove, tommy_cat_acc_lookup;
 extern int g_tommy_flag_1028;
@@ -125,11 +125,8 @@ extern void modifyGlobalSharersList(char read_or_write, addr_t addr, CTAID_TID_T
 );
 extern std::deque<struct MyAddrToSharersCommand> sharer_cmd_queue_to_cat;
 extern unsigned long long g_last_tommy_packet_ts;
+extern unsigned g_tommy_packet_count_sm[999];
 
-std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >
-   	   tx_log_walker::addr_to_sharers_w;
-std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >
-   	   tx_log_walker::addr_to_sharers_r;
 extern unsigned UnorderedSetDiffSize (const std::unordered_set<addr_t>* set1, const std::unordered_set<addr_t>* set2,
 		std::unordered_set<addr_t>* delete_set, std::unordered_set<addr_t>* append_set);
 std::unordered_set<addr_t> dummy_cat_w_snapshot_0, dummy_cat_w_snapshot_1, dummy_cat_r_snapshot_0, dummy_cat_r_snapshot_1;
@@ -148,7 +145,11 @@ struct MyAddrToSharersCommand {
 		ctaidtid = CTAID_TID_Ty(blah, bleh);
 		life = 15;
 		serial = -2147483648;
+		is_signature = false;
 	}
+
+	bool is_signature;
+
 	char which_rw; // 'R': Read table. 'W': Write table.
 	char append_or_remove; // 'A': Append, 'R': Remove
 	addr_t addr;
@@ -156,6 +157,8 @@ struct MyAddrToSharersCommand {
 	unsigned long long until; // Will not become effective until global cycle reaches this value
 	int serial;                 // To be used in conjunction with FLAG_1124
 	int life  ;                 // How many Shaders are yet to see this entry; decrements by 1 at each use
+
+	std::bitset<256> rsig, wsig;
 };
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1051,10 +1054,8 @@ void shader_core_ctx::fetch() {
 				unsigned nbytes = 16;
 				unsigned offset_in_block = pc
 						& (m_config->m_L1I_config.get_line_sz() - 1);
-				if ((offset_in_block + nbytes)
-						> m_config->m_L1I_config.get_line_sz())
-					nbytes = (m_config->m_L1I_config.get_line_sz()
-							- offset_in_block);
+				if ((offset_in_block + nbytes) > m_config->m_L1I_config.get_line_sz())
+					nbytes = (m_config->m_L1I_config.get_line_sz() - offset_in_block);
 
 				bool perfect_L1I = false;
 				if (perfect_L1I) {
@@ -2872,8 +2873,6 @@ void shader_core_ctx::register_cta_thread_exit(unsigned cta_num) {
 		if (g_tommy_flag_1124 == 1 && get_sid() == 0) {
 			printf("\x1B[33m" "TOMMY_FLAG_1124 changed to 0 !!\n");
 			g_tommy_flag_1124 = 0;
-			tx_log_walker::addr_to_sharers_r.clear();
-			tx_log_walker::addr_to_sharers_w.clear();
 		}
 		if (m_n_active_cta == 0) {
 			assert(m_kernel != NULL);
@@ -6682,10 +6681,10 @@ void tx_log_walker::intra_warp_conflict_detection(warp_inst_t &inst,
 		printf("[TommyTxn] At cycle %llu, FLAG_0729 vs WarpTM-Only abort: %lu vs %lu (cumsum=%u vs %u)",
 			gpu_sim_cycle + gpu_tot_sim_cycle, count1, count2,
 			cumsum1, cumsum2);
-		if (g_tommy_flag_1124) { printf("\x1B[34m"); } // Blue
+		if (g_tommy_flag_1124_1) { printf("\x1B[34m"); } // Blue
 		printf(" L_CAT size[%lu,%lu], ", addr_to_sharers_w.size(),   addr_to_sharers_r.size());
 		printf("\x1B[0m");
-		if (!g_tommy_flag_1124) { printf("\x1B[34m"); }
+		if (!g_tommy_flag_1124_1) { printf("\x1B[34m"); }
 		printf(" G_CAT size[%lu,%lu]", g_addr_to_sharers_w.size(), g_addr_to_sharers_r.size());
 		printf("\x1B[0m");
 		printf(" lastTS=%llu\n", g_last_tommy_packet_ts);
@@ -8426,54 +8425,43 @@ bool tx_log_walker_warpc::process_commit_unit_reply(mem_fetch *mf) {
 				int applied = 0;
 				for (std::deque<struct MyAddrToSharersCommand>::iterator itr = sharer_cmd_queue_to_cat.begin();
 						itr != sharer_cmd_queue_to_cat.end(); itr++) {
-					struct MyAddrToSharersCommand& cmd = *itr;
-					if (cmd.serial != serial) continue;
 
-					std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >* ptr = NULL;
+					MyAddrToSharersCommand& cmd = *itr;
 
-					addr_t addr = cmd.addr;
-					CTAID_TID_Ty ownerid = cmd.ctaidtid;
+					if (cmd.is_signature) {
+						cat_use_bf = true;
+						addr_r_signature = cmd.rsig;
+						addr_w_signature = cmd.wsig;
+					} else {
 
-					if (cmd.which_rw == 'R') { ptr = &addr_to_sharers_r; }
-					else if (cmd.which_rw == 'W') { ptr = &addr_to_sharers_w; }
+						std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >* ptr = NULL;
 
-					if (cmd.append_or_remove == 'A') {
-						if (ptr->find(addr) == ptr->end()) (*ptr)[addr] = std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo>();
-						(*ptr)[addr][ownerid] = AddrOwnerInfo();
-						(*ptr)[addr][ownerid].created_time = gpu_sim_cycle + gpu_tot_sim_cycle;
-						(*ptr)[addr][ownerid].addr         = addr;
-					} else if (cmd.append_or_remove == 'R') {
-						std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr0 = ptr->find(addr);
-						if (itr0 != ptr->end()) { ptr->erase(itr0); }
+						addr_t addr = cmd.addr;
+						CTAID_TID_Ty ownerid = cmd.ctaidtid;
+
+						if (cmd.which_rw == 'R') { ptr = &addr_to_sharers_r; }
+						else if (cmd.which_rw == 'W') { ptr = &addr_to_sharers_w; }
+
+						if (cmd.append_or_remove == 'A') {
+							if (ptr->find(addr) == ptr->end()) (*ptr)[addr] = std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo>();
+							(*ptr)[addr][ownerid] = AddrOwnerInfo();
+							(*ptr)[addr][ownerid].created_time = gpu_sim_cycle + gpu_tot_sim_cycle;
+							(*ptr)[addr][ownerid].addr         = addr;
+						} else if (cmd.append_or_remove == 'R') {
+							std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr0 = ptr->find(addr);
+							if (itr0 != ptr->end()) { ptr->erase(itr0); }
+						}
 					}
-
 					applied ++;
 				}
-				/*printf("[%llu vs %llu delta=%d FLAG 1124] SID=%d table sizes = [%lu,%lu], versus [%lu,%lu], %d cmds applied @ SN=%d\n",
-					gpu_sim_cycle + gpu_tot_sim_cycle, mf->rct_to_cat_timestamp,
-					(gpu_sim_cycle + gpu_tot_sim_cycle - mf->rct_to_cat_timestamp),
-					m_core->get_sid(), addr_to_sharers_w.size(), addr_to_sharers_r.size(),
-					g_addr_to_sharers_w.size(), g_addr_to_sharers_r.size(), applied, serial);*/
-			}
+				sharer_cmd_queue_to_cat.clear();
 
-			/*
-			printf("Global ownership W\n");
-			for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr =
-				g_addr_to_sharers_w.begin(); itr != g_addr_to_sharers_w.end(); itr++) {
-				printf("%p ", itr->first);
+				g_tommy_packet_count_sm[m_core->get_sid()] ++;
 			}
-			printf("\nMy ownership W\n");
-			for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr =
-				addr_to_sharers_w.begin(); itr != addr_to_sharers_w.end(); itr++) {
-				printf("%p ", itr->first);
-			}
-			printf("\n");*/
-
-
 			std::unordered_set<addr_t> dummy_rset_append, dummy_rset_delete, dummy_wset_append, dummy_wset_delete;
 
+#if 0
 			// Sanity Check (OK, may delete ------ 20151129
-			/*
 			{
 				std::unordered_set<addr_t> dummy_r, dummy_w;
 				for (std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >::iterator itr =
@@ -8499,7 +8487,8 @@ bool tx_log_walker_warpc::process_commit_unit_reply(mem_fetch *mf) {
 					assert(0);
 				}
 				assert (dummy_r == dummy_cat_r_snapshot_0);
-			}*/
+			}
+#endif
 
 #if 0
 		   GetCATSnapshots(&dummy_cat_w_snapshot_1, &dummy_cat_r_snapshot_1);
@@ -8630,7 +8619,6 @@ bool tx_log_walker_warpc::process_commit_unit_reply(mem_fetch *mf) {
 			//addr_to_sharers_r = g_addr_to_sharers_r;
 #endif
 		}
-
 		break;
 	}
 	case CU_TOMMY_2: {
@@ -8797,7 +8785,8 @@ bool tx_log_walker::shouldAbort0729 (ptx_thread_info* pti, bool use_word_addr, c
 
 	std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> > *p_addr_to_sharers_w,
 		*p_addr_to_sharers_r;
-	if (g_tommy_flag_1124) {
+
+	if (g_tommy_flag_1124 && g_tommy_flag_1124_1) {
 		p_addr_to_sharers_w = &addr_to_sharers_w;
 		p_addr_to_sharers_r = &addr_to_sharers_r;
 	} else {
@@ -8822,6 +8811,35 @@ bool tx_log_walker::shouldAbort0729 (ptx_thread_info* pti, bool use_word_addr, c
 		}
 		printf("\n");
 	}
+
+	// 11-30
+
+	if (cat_use_bf) {
+		CTAID_TID_Ty ctaidtid(pti->get_ctaid(), pti->get_tid());
+
+		addr_set_t::iterator itr = tm0->m_read_set.begin();
+		for (; itr != tm0->m_read_set.end(); itr++) {
+			addr_t addr = *itr;
+			if (use_word_addr) addr = addr & 0xFFFFFFFC;
+			int hpos1 = h3_hash1(256, addr), hpos2 = h3_hash2(256, addr);
+			if (addr_w_signature.test(hpos1) && addr_w_signature.test(hpos2)) {
+				ret = true; break;
+			}
+		}
+
+		itr = tm0->m_write_set.begin();
+		for (; itr != tm0->m_write_set.end(); itr++) {
+			addr_t addr = *itr;
+			if (use_word_addr) addr = addr & 0xFFFFFFFC;
+			int hpos1 = h3_hash1(256, addr), hpos2 = h3_hash2(256, addr);
+			if (addr_r_signature.test(hpos1) && addr_w_signature.test(hpos2)) {
+				ret = true; break;
+			}
+		}
+		return ret;
+	}
+
+
 	addr_set_t::iterator itr = tm0->m_read_set.begin();
 	CTAID_TID_Ty ctaidtid(pti->get_ctaid(), pti->get_tid());
 	for (; itr != tm0->m_read_set.end(); itr++) {
@@ -9048,3 +9066,6 @@ void tx_log_walker::iwcd_uarch_info::queue_event(enum event_type evtype, unsigne
 		 }
    }
 }
+
+std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> >
+   	   tx_log_walker::addr_to_sharers_w, tx_log_walker::addr_to_sharers_r;

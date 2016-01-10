@@ -133,9 +133,15 @@ unsigned g_0830_restore_by_pc_count = 0;
 bool g_tommy_log_0902 = true;
 
 // Adding modelling of interconnect delays
-bool g_tommy_flag_1124 = false;
-unsigned g_tommy_packet_count = 0, g_tommy_packet_count_tout = 0; // second count is for timeout-induced
+bool g_tommy_flag_1124 = false, g_tommy_flag_1124_1 = false;
+unsigned g_tommy_packet_flyover = 0, g_tommy_packet_count = 0, g_tommy_packet_count_tout = 0; // second count is for timeout-induced
+unsigned g_tommy_packet_count_sm[999];
 unsigned long long g_last_tommy_packet_ts = 0;
+
+int g_tommy_flag_1124_interval = 2;
+
+// Tommy 2016-01-06: Only compute unique cache lines in CAT lookups for PnG and EA
+unsigned g_tommy_1028_lookups = 0, g_tommy_1028_lines = 0;
 
 #define DBG(stmt) ;
 // -------------------------------------------------------------------
@@ -575,6 +581,12 @@ void TommyEnvConfig() {
 		if (x) { g_tommy_flag_1028 = atoi(x); }
 		x = getenv("TOMMY_FLAG_1124");
 		if (x) { g_tommy_flag_1124 = true; }
+		x = getenv("TOMMY_FLAG_1124_1");
+		if (x) { g_tommy_flag_1124_1 = true; }
+		x = getenv("TOMMY_FLAG_1124_INTERVAL");
+		if (x) g_tommy_flag_1124_interval = atoi(x);
+
+		init_h3_hash(256);
 	}
 	{
 		char* x = getenv("TOMMY_DBG_0830");
@@ -4131,7 +4143,13 @@ void Cartographer::DumpTMHistory() {
 		if (g_tommy_flag_1028 > 0) { printf(" (Injected same number of events to model Early Abort)"); }
 		printf("# of groups of RCT->CAT packets transfered: %lu\n", g_tommy_packet_count);
 		printf("     %lu of them are timeout-induced.\n", g_tommy_packet_count_tout);
+		printf("Per shader TommyPacket count: \n");
+		for (int i=0; i<16; i++) {
+			printf(" Shader[%d] = %u\n", i, g_tommy_packet_count_sm[i]);
+		}
 		printf("\n");
+		printf("CAT Lookups = %u, of which unique lines = %u\n",
+			g_tommy_1028_lookups, g_tommy_1028_lines);
 	}
 }
 

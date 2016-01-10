@@ -54,7 +54,7 @@ extern unsigned g_num_staggers, g_num_stagger_samewarp, g_watched_tid;
 extern int g_print_simt_stack_sid, g_print_simt_stack_wid;
 extern int g_tommy_reconverge_point_mode;
 extern int g_tommy_break_cycle;
-extern bool g_tommy_flag_1124;
+extern bool g_tommy_flag_1124, g_tommy_flag_1124_1;
 
 int gpgpu_ptx_instruction_classification;
 void ** g_inst_classification_stat = NULL;
@@ -1299,7 +1299,7 @@ void ptx_thread_info::ptx_exec_inst( warp_inst_t &inst, unsigned lane_id)
 			decode_space(staggered_space, this, src1, mem, staggered_addr);
 
 			std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> > *sharers_w, *sharers_r;
-			if (g_tommy_flag_1124) {
+			if (g_tommy_flag_1124 && g_tommy_flag_1124_1) {
 				sharers_w = &(scc->m_ldst_unit->m_TLW->addr_to_sharers_w);
 				sharers_r = &(scc->m_ldst_unit->m_TLW->addr_to_sharers_r);
 			} else {

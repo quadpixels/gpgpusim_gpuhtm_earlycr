@@ -247,7 +247,7 @@ public:
                 return m_unit->m_L2_icnt_queue->full();
         }
         virtual void push(mem_fetch *mf) {
-                m_unit->m_L2_icnt_queue->push(mf);
+        	m_unit->m_L2_icnt_queue->push(mf);
         }
 private:
     memory_sub_partition *m_unit;

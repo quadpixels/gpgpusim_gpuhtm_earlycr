@@ -1311,6 +1311,15 @@ void gpgpu_sim::cycle()
                     if (!mf->get_is_write()) 
                        mf->set_return_timestamp(gpu_sim_cycle+gpu_tot_sim_cycle);
                     mf->set_status(IN_ICNT_TO_SHADER,gpu_sim_cycle+gpu_tot_sim_cycle);
+                    if (mf->m_sid == 0xBAADCAFE) {
+                    	for (int j=0; j<15; j++) {
+                    		mem_fetch* x = new mem_fetch(*mf);
+                    		x->m_sid = j;
+                    		x->m_tpc = j;
+                    		::icnt_push( m_shader_config->mem2device(i), x->get_tpc(), x, response_size );
+                    	}
+                    	delete mf;
+                    } else
                     ::icnt_push( m_shader_config->mem2device(i), mf->get_tpc(), mf, response_size );
                     m_memory_sub_partition[i]->pop();
                 } else {

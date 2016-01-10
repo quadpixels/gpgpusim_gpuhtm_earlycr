@@ -102,6 +102,8 @@ friend class tx_log_walker;
 friend class tx_log_walker_warpc;
 friend class tex_cache;
 friend class commit_unit;
+friend class L2icnt_interface;
+friend class gpgpu_sim;
 public:
     mem_fetch( const mem_access_t &access, 
                const warp_inst_t *inst,
