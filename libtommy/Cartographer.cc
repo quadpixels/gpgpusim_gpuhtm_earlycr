@@ -138,7 +138,7 @@ unsigned g_tommy_packet_flyover = 0, g_tommy_packet_count = 0, g_tommy_packet_co
 unsigned g_tommy_packet_count_sm[999];
 unsigned long long g_last_tommy_packet_ts = 0;
 
-int g_tommy_flag_1124_interval = 2;
+int g_tommy_flag_1124_interval = 1;
 
 // Tommy 2016-01-06: Only compute unique cache lines in CAT lookups for PnG and EA
 unsigned g_tommy_1028_lookups = 0, g_tommy_1028_lines = 0;

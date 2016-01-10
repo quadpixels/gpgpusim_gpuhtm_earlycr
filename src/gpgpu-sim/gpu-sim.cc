@@ -100,6 +100,8 @@ extern void CartographerTimeSeries_accountAllThreads();
 extern void Cartographer_DumpTMHistory();
 extern void Cartographer_dumpDarkSiliconOpportunity();
 
+extern std::unordered_map<addr_t, std::unordered_map<CTAID_TID_Ty, AddrOwnerInfo> > g_addr_to_sharers_w, g_addr_to_sharers_r;
+
 #define MEM_LATENCY_STAT_IMPL
 #include "mem_latency_stat.h"
 
@@ -1292,6 +1294,11 @@ unsigned long long g_single_step=0; // set this in gdb to single step the pipeli
 
 void gpgpu_sim::cycle()
 {
+
+	// 2016-01-10 Tommy
+	if (g_addr_to_sharers_r.empty()) { tx_log_walker::addr_to_sharers_r.clear(); }
+	if (g_addr_to_sharers_w.empty()) { tx_log_walker::addr_to_sharers_w.clear(); }
+
    int clock_mask = next_clock_domain();
 
    if (clock_mask & CORE ) {
@@ -1312,6 +1319,7 @@ void gpgpu_sim::cycle()
                        mf->set_return_timestamp(gpu_sim_cycle+gpu_tot_sim_cycle);
                     mf->set_status(IN_ICNT_TO_SHADER,gpu_sim_cycle+gpu_tot_sim_cycle);
                     if (mf->m_sid == 0xBAADCAFE) {
+                    	assert (0 && "Disabled on 2016-01-10");
                     	for (int j=0; j<15; j++) {
                     		mem_fetch* x = new mem_fetch(*mf);
                     		x->m_sid = j;

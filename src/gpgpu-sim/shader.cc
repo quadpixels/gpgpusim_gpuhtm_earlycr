@@ -8454,9 +8454,22 @@ bool tx_log_walker_warpc::process_commit_unit_reply(mem_fetch *mf) {
 					}
 					applied ++;
 				}
-				sharer_cmd_queue_to_cat.clear();
-
 				g_tommy_packet_count_sm[m_core->get_sid()] ++;
+
+				while (true) {
+					bool has_used = false;
+					for (std::deque<struct MyAddrToSharersCommand>::iterator itr = sharer_cmd_queue_to_cat.begin();
+							itr != sharer_cmd_queue_to_cat.end(); itr++) {
+						MyAddrToSharersCommand& cmd = *itr;
+						if (cmd.serial < serial) {
+							sharer_cmd_queue_to_cat.erase(itr);
+							has_used = true;
+							break;
+						}
+					}
+					if (!has_used) break;
+				}
+
 			}
 			std::unordered_set<addr_t> dummy_rset_append, dummy_rset_delete, dummy_wset_append, dummy_wset_delete;
 
@@ -8615,9 +8628,10 @@ bool tx_log_walker_warpc::process_commit_unit_reply(mem_fetch *mf) {
 				addr_to_sharers_r[*itr][ownerid] = AddrOwnerInfo();
 			}*/
 
+#endif
+
 			//addr_to_sharers_w = g_addr_to_sharers_w;
 			//addr_to_sharers_r = g_addr_to_sharers_r;
-#endif
 		}
 		break;
 	}

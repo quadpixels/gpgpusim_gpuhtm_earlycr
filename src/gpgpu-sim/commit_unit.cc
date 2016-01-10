@@ -21,6 +21,7 @@ extern tm_global_statistics g_tm_global_statistics;
 extern bool g_tommy_flag_0729, g_tommy_flag_0808, g_tommy_flag_1124;
 extern unsigned tommy_rct_acc;
 extern unsigned g_tommy_packet_count, g_tommy_packet_count_tout, g_tommy_packet_flyover;
+extern std::unordered_set<addr_t> dummy_cat_w_snapshot_0, dummy_cat_w_snapshot_1, dummy_cat_r_snapshot_0, dummy_cat_r_snapshot_1;
 extern int g_tommy_flag_1124_interval;
 extern unsigned long long g_last_tommy_packet_ts;
 
@@ -151,8 +152,7 @@ void commit_unit::GetCATSnapshotsMy(std::unordered_set<addr_t>* write_set, std::
 		max_read, max_write);
 	*/
 
-	// Save space: only get 8 read addresses and 8 write addresses
-	unsigned int cap = 8;
+	unsigned int cap = 10000000;
 	for (std::unordered_map<addr_t, std::unordered_set<CTAID_TID_Ty> >::iterator itr =
 			addr_to_sharers_w.begin(); itr != addr_to_sharers_w.end(); itr++) {
 		if (max_write < itr->second.size()) max_write = itr->second.size();
@@ -2007,6 +2007,8 @@ void commit_unit::process_coalesced_input_parallel( mem_fetch *input_msg, unsign
 							if (!can_ignore) {
 								send_reply_tommy(-999, 0, 0, gpu_sim_cycle + gpu_tot_sim_cycle, CU_TOMMY_1, size, g_cat_update_serial,
 									&wset_delete, &wset_append, &rset_delete, &rset_append);
+								dummy_cat_w_snapshot_0 = addr_write_set_1;
+								dummy_cat_r_snapshot_0 = addr_read_set_1;
 							}
 
 	//            			g_cat_r_snapshot_0 = g_cat_r_snapshot_1;
@@ -2656,6 +2658,7 @@ void commit_unit::send_reply( unsigned sid, unsigned tpc, unsigned wid, unsigned
 									g_cat_update_serial ++;
 									send_reply_tommy(-999, tpc, wid, gpu_sim_cycle + gpu_tot_sim_cycle, CU_TOMMY_1, size, g_cat_update_serial,
 											&wset_delete, &wset_append, &rset_delete, &rset_append);
+
 								}
 							} else {
 								g_tommy_packet_flyover ++;
@@ -2675,6 +2678,8 @@ void commit_unit::send_reply( unsigned sid, unsigned tpc, unsigned wid, unsigned
 										g_cat_update_serial ++;
 										send_reply_tommy(-999, tpc, wid, gpu_sim_cycle + gpu_tot_sim_cycle, CU_TOMMY_1, size, g_cat_update_serial,
 												&wset_delete, &wset_append, &rset_delete, &rset_append);
+										dummy_cat_w_snapshot_0 = addr_write_set_1;
+										dummy_cat_r_snapshot_0 = addr_read_set_1;
 									}
 								}
 							}
@@ -2765,9 +2770,9 @@ void commit_unit::send_reply_tommy (unsigned sid, unsigned tpc, unsigned wid, un
 	int itr = 0;
 	const int sz0 = 32;//sz;
 
-//	for (int i = 0; i<1; i++) {
-	{
-		int i = 0xBAADCAFE;
+	for (int i = 0; i<1; i++) {
+//	{
+//		int i = 0xBAADCAFE;
 		sz = sz0;
 		while (sz > 0) {
 			unsigned this_size = (sz > 128) ? 128 : sz;
@@ -2812,6 +2817,7 @@ void commit_unit::send_reply_tommy (unsigned sid, unsigned tpc, unsigned wid, un
 			itr != rset_delete->end(); itr++) {
 			do_append_addr_to_cat_request(*itr, 'R', 'R', g_cat_update_serial, 15);
 		}
+
 		//sharer_cmd_queue_to_cat
 
 /*
