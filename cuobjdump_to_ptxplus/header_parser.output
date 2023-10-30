@@ -1,0 +1,362 @@
+文法
+
+    0 $accept: program $end
+
+    1 program: statementList
+
+    2 statementList: statementList statement
+    3              | statement
+
+    4 statement: compilerDirective literal literal
+    5          | compilerDirective identifierList
+    6          | compilerDirective identifierList LEFTPAREN parameterList RIGHTPAREN
+
+    7 compilerDirective: DOTVERSION
+    8                  | DOTTARGET
+    9                  | DOTENTRY
+
+   10 identifierList: identifierList IDENTIFER
+   11               | IDENTIFER
+
+   12 parameterList: parameterList parameter
+   13              | parameter
+
+   14 parameter: stateSpace opTypes IDENTIFER
+
+   15 stateSpace: DOTPARAM
+
+   16 opTypes: DOTU64
+   17        | DOTU32
+   18        | DOTU16
+   19        | DOTB32
+   20        | DOTF32
+
+   21 literal: DECLITERAL
+
+
+終結語詞，附有它們出現處的規則
+
+$end (0) 0
+error (256)
+DOTVERSION (258) 7
+DOTTARGET (259) 8
+DOTENTRY (260) 9
+DOTPARAM (261) 15
+DOTU64 (262) 16
+DOTU32 (263) 17
+DOTU16 (264) 18
+DOTB32 (265) 19
+DOTF32 (266) 20
+IDENTIFER (267) 10 11 14
+DECLITERAL (268) 21
+LEFTPAREN (269) 6
+RIGHTPAREN (270) 6
+
+
+非終結語詞，附有它們出現處的規則
+
+$accept (16)
+    於左側： 0
+program (17)
+    於左側： 1, 於右側： 0
+statementList (18)
+    於左側： 2 3, 於右側： 1 2
+statement (19)
+    於左側： 4 5 6, 於右側： 2 3
+compilerDirective (20)
+    於左側： 7 8 9, 於右側： 4 5 6
+identifierList (21)
+    於左側： 10 11, 於右側： 5 6 10
+parameterList (22)
+    於左側： 12 13, 於右側： 6 12
+parameter (23)
+    於左側： 14, 於右側： 12 13
+stateSpace (24)
+    於左側： 15, 於右側： 14
+opTypes (25)
+    於左側： 16 17 18 19 20, 於右側： 14
+literal (26)
+    於左側： 21, 於右側： 4
+
+
+狀態 0
+
+    0 $accept: . program $end
+    1 program: . statementList
+    2 statementList: . statementList statement
+    3              | . statement
+    4 statement: . compilerDirective literal literal
+    5          | . compilerDirective identifierList
+    6          | . compilerDirective identifierList LEFTPAREN parameterList RIGHTPAREN
+    7 compilerDirective: . DOTVERSION
+    8                  | . DOTTARGET
+    9                  | . DOTENTRY
+
+    DOTVERSION  偏移，並進入狀態 1
+    DOTTARGET   偏移，並進入狀態 2
+    DOTENTRY    偏移，並進入狀態 3
+
+    program            進入狀態 4
+    statementList      進入狀態 5
+    statement          進入狀態 6
+    compilerDirective  進入狀態 7
+
+
+狀態 1
+
+    7 compilerDirective: DOTVERSION .
+
+    $預設  使用規則 7 以縮減 (compilerDirective)
+
+
+狀態 2
+
+    8 compilerDirective: DOTTARGET .
+
+    $預設  使用規則 8 以縮減 (compilerDirective)
+
+
+狀態 3
+
+    9 compilerDirective: DOTENTRY .
+
+    $預設  使用規則 9 以縮減 (compilerDirective)
+
+
+狀態 4
+
+    0 $accept: program . $end
+
+    $end  偏移，並進入狀態 8
+
+
+狀態 5
+
+    1 program: statementList .  [$end]
+    2 statementList: statementList . statement
+    4 statement: . compilerDirective literal literal
+    5          | . compilerDirective identifierList
+    6          | . compilerDirective identifierList LEFTPAREN parameterList RIGHTPAREN
+    7 compilerDirective: . DOTVERSION
+    8                  | . DOTTARGET
+    9                  | . DOTENTRY
+
+    DOTVERSION  偏移，並進入狀態 1
+    DOTTARGET   偏移，並進入狀態 2
+    DOTENTRY    偏移，並進入狀態 3
+
+    $預設  使用規則 1 以縮減 (program)
+
+    statement          進入狀態 9
+    compilerDirective  進入狀態 7
+
+
+狀態 6
+
+    3 statementList: statement .
+
+    $預設  使用規則 3 以縮減 (statementList)
+
+
+狀態 7
+
+    4 statement: compilerDirective . literal literal
+    5          | compilerDirective . identifierList
+    6          | compilerDirective . identifierList LEFTPAREN parameterList RIGHTPAREN
+   10 identifierList: . identifierList IDENTIFER
+   11               | . IDENTIFER
+   21 literal: . DECLITERAL
+
+    IDENTIFER   偏移，並進入狀態 10
+    DECLITERAL  偏移，並進入狀態 11
+
+    identifierList  進入狀態 12
+    literal         進入狀態 13
+
+
+狀態 8
+
+    0 $accept: program $end .
+
+    $預設  接受
+
+
+狀態 9
+
+    2 statementList: statementList statement .
+
+    $預設  使用規則 2 以縮減 (statementList)
+
+
+狀態 10
+
+   11 identifierList: IDENTIFER .
+
+    $預設  使用規則 11 以縮減 (identifierList)
+
+
+狀態 11
+
+   21 literal: DECLITERAL .
+
+    $預設  使用規則 21 以縮減 (literal)
+
+
+狀態 12
+
+    5 statement: compilerDirective identifierList .  [$end, DOTVERSION, DOTTARGET, DOTENTRY]
+    6          | compilerDirective identifierList . LEFTPAREN parameterList RIGHTPAREN
+   10 identifierList: identifierList . IDENTIFER
+
+    IDENTIFER  偏移，並進入狀態 14
+    LEFTPAREN  偏移，並進入狀態 15
+
+    $預設  使用規則 5 以縮減 (statement)
+
+
+狀態 13
+
+    4 statement: compilerDirective literal . literal
+   21 literal: . DECLITERAL
+
+    DECLITERAL  偏移，並進入狀態 11
+
+    literal  進入狀態 16
+
+
+狀態 14
+
+   10 identifierList: identifierList IDENTIFER .
+
+    $預設  使用規則 10 以縮減 (identifierList)
+
+
+狀態 15
+
+    6 statement: compilerDirective identifierList LEFTPAREN . parameterList RIGHTPAREN
+   12 parameterList: . parameterList parameter
+   13              | . parameter
+   14 parameter: . stateSpace opTypes IDENTIFER
+   15 stateSpace: . DOTPARAM
+
+    DOTPARAM  偏移，並進入狀態 17
+
+    parameterList  進入狀態 18
+    parameter      進入狀態 19
+    stateSpace     進入狀態 20
+
+
+狀態 16
+
+    4 statement: compilerDirective literal literal .
+
+    $預設  使用規則 4 以縮減 (statement)
+
+
+狀態 17
+
+   15 stateSpace: DOTPARAM .
+
+    $預設  使用規則 15 以縮減 (stateSpace)
+
+
+狀態 18
+
+    6 statement: compilerDirective identifierList LEFTPAREN parameterList . RIGHTPAREN
+   12 parameterList: parameterList . parameter
+   14 parameter: . stateSpace opTypes IDENTIFER
+   15 stateSpace: . DOTPARAM
+
+    DOTPARAM    偏移，並進入狀態 17
+    RIGHTPAREN  偏移，並進入狀態 21
+
+    parameter   進入狀態 22
+    stateSpace  進入狀態 20
+
+
+狀態 19
+
+   13 parameterList: parameter .
+
+    $預設  使用規則 13 以縮減 (parameterList)
+
+
+狀態 20
+
+   14 parameter: stateSpace . opTypes IDENTIFER
+   16 opTypes: . DOTU64
+   17        | . DOTU32
+   18        | . DOTU16
+   19        | . DOTB32
+   20        | . DOTF32
+
+    DOTU64  偏移，並進入狀態 23
+    DOTU32  偏移，並進入狀態 24
+    DOTU16  偏移，並進入狀態 25
+    DOTB32  偏移，並進入狀態 26
+    DOTF32  偏移，並進入狀態 27
+
+    opTypes  進入狀態 28
+
+
+狀態 21
+
+    6 statement: compilerDirective identifierList LEFTPAREN parameterList RIGHTPAREN .
+
+    $預設  使用規則 6 以縮減 (statement)
+
+
+狀態 22
+
+   12 parameterList: parameterList parameter .
+
+    $預設  使用規則 12 以縮減 (parameterList)
+
+
+狀態 23
+
+   16 opTypes: DOTU64 .
+
+    $預設  使用規則 16 以縮減 (opTypes)
+
+
+狀態 24
+
+   17 opTypes: DOTU32 .
+
+    $預設  使用規則 17 以縮減 (opTypes)
+
+
+狀態 25
+
+   18 opTypes: DOTU16 .
+
+    $預設  使用規則 18 以縮減 (opTypes)
+
+
+狀態 26
+
+   19 opTypes: DOTB32 .
+
+    $預設  使用規則 19 以縮減 (opTypes)
+
+
+狀態 27
+
+   20 opTypes: DOTF32 .
+
+    $預設  使用規則 20 以縮減 (opTypes)
+
+
+狀態 28
+
+   14 parameter: stateSpace opTypes . IDENTIFER
+
+    IDENTIFER  偏移，並進入狀態 29
+
+
+狀態 29
+
+   14 parameter: stateSpace opTypes IDENTIFER .
+
+    $預設  使用規則 14 以縮減 (parameter)

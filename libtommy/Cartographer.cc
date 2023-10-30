@@ -4021,7 +4021,14 @@ void Cartographer::DumpTMHistory() {
 
 
 		// Dump to the GZFile as well
-		char fn_kind[22], fn_rwsetsize[22], fn_rwset[88];
+		char fn_kind[22], fn_rwsetsize[22], fn_rwset[88], tag[100];
+
+		{
+			char* x = getenv("TM_RWSET_FILE_TAG");
+			if (x) {
+				strcpy(tag, x);
+			} else tag[0] = 0x00;
+		}
 
 		sprintf(fn_rwset, "tm_rwsets.gz");
 
@@ -4037,14 +4044,14 @@ void Cartographer::DumpTMHistory() {
 			} else {
 				sprintf(fn_kind, "0808");
 			}
-			sprintf(fn_rwset, "tm_rwsets_%s_%s.gz", fn_kind, fn_rwsetsize);
+			sprintf(fn_rwset, "tm_rwsets_%s_%s_%s_%u.gz", tag, fn_kind, fn_rwsetsize, tommy_0729_delay1);
 		} else {
 			if (g_tommy_flag_0729 == true) {
 				sprintf(fn_kind, "0729");
-				sprintf(fn_rwset, "tm_rwsets_%s_%s.gz", fn_kind, fn_rwsetsize);
+				sprintf(fn_rwset, "tm_rwsets_%s_%s_%s_%u.gz", tag,fn_kind, fn_rwsetsize, tommy_0729_delay1);
 			} else {
 				sprintf(fn_kind, "orig");
-				sprintf(fn_rwset, "tm_rwsets_%s.gz", fn_kind);
+				sprintf(fn_rwset, "tm_rwsets_%s_%s.gz", tag, fn_kind);
 			}
 		}
 

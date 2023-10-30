@@ -1,0 +1,2 @@
+g++ -g -fPIC -c Cartographer.cc -I../src -std=c++11
+g++ -g -shared -o Cartographer.so Cartographer.o

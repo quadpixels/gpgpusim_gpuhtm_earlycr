@@ -1,0 +1,5372 @@
+終端機在文法中未使用
+
+   BRANCHTARGETS_DIRECTIVE
+   BYTE_DIRECTIVE
+   CALLPROTOTYPE_DIRECTIVE
+   CALLTARGETS_DIRECTIVE
+   MAXNNREG_DIRECTIVE
+   REQNTID_DIRECTIVE
+   SECTION_DIRECTIVE
+   STRUCT_DIRECTIVE
+   UNION_DIRECTIVE
+   PERIOD
+
+
+狀態 51 衝突：1 項縮減/縮減
+狀態 293 衝突：1 項縮減/縮減
+
+
+文法
+
+    0 $accept: input $end
+
+    1 input: %empty
+    2      | input directive_statement
+    3      | input function_defn
+    4      | input function_decl
+
+    5 $@1: %empty
+
+    6 function_defn: function_decl $@1 statement_block
+
+    7 $@2: %empty
+
+    8 $@3: %empty
+
+    9 function_defn: function_decl $@2 block_spec_list $@3 statement_block
+
+   10 block_spec: MAXNTID_DIRECTIVE INT_OPERAND COMMA INT_OPERAND COMMA INT_OPERAND
+   11           | MINNCTAPERSM_DIRECTIVE INT_OPERAND
+   12           | MAXNCTAPERSM_DIRECTIVE INT_OPERAND
+
+   13 block_spec_list: block_spec
+   14                | block_spec_list block_spec
+
+   15 $@4: %empty
+
+   16 $@5: %empty
+
+   17 function_decl: function_decl_header LEFT_PAREN $@4 param_entry RIGHT_PAREN $@5 function_ident_param
+
+   18 $@6: %empty
+
+   19 function_decl: function_decl_header $@6 function_ident_param
+   20              | function_decl_header
+
+   21 $@7: %empty
+
+   22 $@8: %empty
+
+   23 function_ident_param: IDENTIFIER $@7 LEFT_PAREN $@8 param_list RIGHT_PAREN
+   24                     | IDENTIFIER
+
+   25 function_decl_header: ENTRY_DIRECTIVE
+   26                     | FUNC_DIRECTIVE
+   27                     | VISIBLE_DIRECTIVE FUNC_DIRECTIVE
+   28                     | EXTERN_DIRECTIVE FUNC_DIRECTIVE
+
+   29 param_list: %empty
+   30           | param_entry
+
+   31 $@9: %empty
+
+   32 param_list: param_list COMMA $@9 param_entry
+
+   33 $@10: %empty
+
+   34 param_entry: PARAM_DIRECTIVE $@10 variable_spec ptr_spec identifier_spec
+
+   35 $@11: %empty
+
+   36 param_entry: REG_DIRECTIVE $@11 variable_spec identifier_spec
+
+   37 ptr_spec: %empty
+   38         | PTR_DIRECTIVE ptr_space_spec ptr_align_spec
+   39         | PTR_DIRECTIVE ptr_align_spec
+
+   40 ptr_space_spec: GLOBAL_DIRECTIVE
+   41               | LOCAL_DIRECTIVE
+   42               | SHARED_DIRECTIVE
+
+   43 ptr_align_spec: ALIGN_DIRECTIVE INT_OPERAND
+
+   44 statement_block: LEFT_BRACE statement_list RIGHT_BRACE
+
+   45 statement_list: directive_statement
+   46               | instruction_statement
+   47               | statement_list directive_statement
+   48               | statement_list instruction_statement
+   49               | statement_list statement_block
+   50               | statement_block
+
+   51 directive_statement: variable_declaration SEMI_COLON
+   52                    | VERSION_DIRECTIVE DOUBLE_OPERAND
+   53                    | VERSION_DIRECTIVE DOUBLE_OPERAND PLUS
+   54                    | ADDRESS_SIZE_DIRECTIVE INT_OPERAND
+   55                    | TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER
+   56                    | TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER
+   57                    | TARGET_DIRECTIVE IDENTIFIER
+   58                    | FILE_DIRECTIVE INT_OPERAND STRING
+   59                    | LOC_DIRECTIVE INT_OPERAND INT_OPERAND INT_OPERAND
+   60                    | PRAGMA_DIRECTIVE STRING SEMI_COLON
+   61                    | function_decl SEMI_COLON
+   62                    | MINNCTAPERSM_DIRECTIVE INT_OPERAND
+
+   63 variable_declaration: variable_spec identifier_list
+   64                     | variable_spec identifier_spec EQUALS initializer_list
+   65                     | variable_spec identifier_spec EQUALS literal_operand
+   66                     | CONSTPTR_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA INT_OPERAND
+
+   67 variable_spec: var_spec_list
+
+   68 identifier_list: identifier_spec
+   69                | identifier_list COMMA identifier_spec
+
+   70 identifier_spec: IDENTIFIER
+   71                | IDENTIFIER LEFT_ANGLE_BRACKET INT_OPERAND RIGHT_ANGLE_BRACKET
+   72                | IDENTIFIER LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+   73                | IDENTIFIER LEFT_SQUARE_BRACKET INT_OPERAND RIGHT_SQUARE_BRACKET
+
+   74 var_spec_list: var_spec
+   75              | var_spec_list var_spec
+
+   76 var_spec: space_spec
+   77         | type_spec
+   78         | align_spec
+   79         | EXTERN_DIRECTIVE
+
+   80 align_spec: ALIGN_DIRECTIVE INT_OPERAND
+
+   81 space_spec: REG_DIRECTIVE
+   82           | SREG_DIRECTIVE
+   83           | addressable_spec
+
+   84 addressable_spec: CONST_DIRECTIVE
+   85                 | GLOBAL_DIRECTIVE
+   86                 | LOCAL_DIRECTIVE
+   87                 | PARAM_DIRECTIVE
+   88                 | SHARED_DIRECTIVE
+   89                 | SURF_DIRECTIVE
+   90                 | TEX_DIRECTIVE
+
+   91 type_spec: scalar_type
+   92          | vector_spec scalar_type
+
+   93 vector_spec: V2_TYPE
+   94            | V3_TYPE
+   95            | V4_TYPE
+
+   96 scalar_type: S8_TYPE
+   97            | S16_TYPE
+   98            | S32_TYPE
+   99            | S64_TYPE
+  100            | U8_TYPE
+  101            | U16_TYPE
+  102            | U32_TYPE
+  103            | U64_TYPE
+  104            | F16_TYPE
+  105            | F32_TYPE
+  106            | F64_TYPE
+  107            | FF64_TYPE
+  108            | B8_TYPE
+  109            | B16_TYPE
+  110            | B32_TYPE
+  111            | B64_TYPE
+  112            | BB64_TYPE
+  113            | BB128_TYPE
+  114            | PRED_TYPE
+  115            | TEXREF_TYPE
+  116            | SAMPLERREF_TYPE
+  117            | SURFREF_TYPE
+
+  118 initializer_list: LEFT_BRACE literal_list RIGHT_BRACE
+  119                 | LEFT_BRACE initializer_list RIGHT_BRACE
+
+  120 literal_list: literal_operand
+  121             | literal_list COMMA literal_operand
+
+  122 instruction_statement: instruction SEMI_COLON
+  123                      | IDENTIFIER COLON
+  124                      | pred_spec instruction SEMI_COLON
+
+  125 $@12: %empty
+
+  126 instruction: opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 COMMA operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  127            | opcode_spec operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  128            | opcode_spec operand COMMA LEFT_PAREN RIGHT_PAREN
+  129            | opcode_spec operand_list
+  130            | opcode_spec
+
+  131 $@13: %empty
+
+  132 opcode_spec: OPCODE $@13 option_list
+  133            | OPCODE
+
+  134 pred_spec: PRED IDENTIFIER
+  135          | PRED EXCLAMATION IDENTIFIER
+  136          | PRED IDENTIFIER LT_OPTION
+  137          | PRED IDENTIFIER EQ_OPTION
+  138          | PRED IDENTIFIER LE_OPTION
+  139          | PRED IDENTIFIER NE_OPTION
+  140          | PRED IDENTIFIER GE_OPTION
+  141          | PRED IDENTIFIER EQU_OPTION
+  142          | PRED IDENTIFIER GTU_OPTION
+  143          | PRED IDENTIFIER NEU_OPTION
+  144          | PRED IDENTIFIER CF_OPTION
+  145          | PRED IDENTIFIER SF_OPTION
+  146          | PRED IDENTIFIER NSF_OPTION
+
+  147 option_list: option
+  148            | option option_list
+
+  149 option: type_spec
+  150       | compare_spec
+  151       | addressable_spec
+  152       | rounding_mode
+  153       | UNI_OPTION
+  154       | WIDE_OPTION
+  155       | ANY_OPTION
+  156       | ALL_OPTION
+  157       | BALLOT_OPTION
+  158       | GLOBAL_OPTION
+  159       | CTA_OPTION
+  160       | SYS_OPTION
+  161       | GEOM_MODIFIER_1D
+  162       | GEOM_MODIFIER_2D
+  163       | GEOM_MODIFIER_3D
+  164       | SAT_OPTION
+  165       | FTZ_OPTION
+  166       | NEG_OPTION
+  167       | APPROX_OPTION
+  168       | FULL_OPTION
+  169       | EXIT_OPTION
+  170       | ABS_OPTION
+  171       | atomic_operation_spec
+  172       | TO_OPTION
+  173       | HALF_OPTION
+  174       | CA_OPTION
+  175       | CG_OPTION
+  176       | CS_OPTION
+  177       | LU_OPTION
+  178       | CV_OPTION
+  179       | WB_OPTION
+  180       | WT_OPTION
+
+  181 atomic_operation_spec: ATOMIC_AND
+  182                      | ATOMIC_OR
+  183                      | ATOMIC_XOR
+  184                      | ATOMIC_CAS
+  185                      | ATOMIC_EXCH
+  186                      | ATOMIC_ADD
+  187                      | ATOMIC_INC
+  188                      | ATOMIC_DEC
+  189                      | ATOMIC_MIN
+  190                      | ATOMIC_MAX
+
+  191 rounding_mode: floating_point_rounding_mode
+  192              | integer_rounding_mode
+
+  193 floating_point_rounding_mode: RN_OPTION
+  194                             | RZ_OPTION
+  195                             | RM_OPTION
+  196                             | RP_OPTION
+
+  197 integer_rounding_mode: RNI_OPTION
+  198                      | RZI_OPTION
+  199                      | RMI_OPTION
+  200                      | RPI_OPTION
+
+  201 compare_spec: EQ_OPTION
+  202             | NE_OPTION
+  203             | LT_OPTION
+  204             | LE_OPTION
+  205             | GT_OPTION
+  206             | GE_OPTION
+  207             | LO_OPTION
+  208             | LS_OPTION
+  209             | HI_OPTION
+  210             | HS_OPTION
+  211             | EQU_OPTION
+  212             | NEU_OPTION
+  213             | LTU_OPTION
+  214             | LEU_OPTION
+  215             | GTU_OPTION
+  216             | GEU_OPTION
+  217             | NUM_OPTION
+  218             | NAN_OPTION
+
+  219 operand_list: operand
+  220             | operand COMMA operand_list
+
+  221 operand: IDENTIFIER
+  222        | EXCLAMATION IDENTIFIER
+  223        | MINUS IDENTIFIER
+  224        | memory_operand
+  225        | literal_operand
+  226        | builtin_operand
+  227        | vector_operand
+  228        | MINUS vector_operand
+  229        | tex_operand
+  230        | IDENTIFIER PLUS INT_OPERAND
+  231        | IDENTIFIER LO_OPTION
+  232        | MINUS IDENTIFIER LO_OPTION
+  233        | IDENTIFIER HI_OPTION
+  234        | MINUS IDENTIFIER HI_OPTION
+  235        | IDENTIFIER PIPE IDENTIFIER
+  236        | IDENTIFIER PIPE IDENTIFIER LO_OPTION
+  237        | IDENTIFIER PIPE IDENTIFIER HI_OPTION
+  238        | IDENTIFIER BACKSLASH IDENTIFIER
+  239        | IDENTIFIER BACKSLASH IDENTIFIER LO_OPTION
+  240        | IDENTIFIER BACKSLASH IDENTIFIER HI_OPTION
+
+  241 vector_operand: LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | LEFT_BRACE IDENTIFIER RIGHT_BRACE
+
+  245 $@14: %empty
+
+  246 tex_operand: LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET
+
+  247 builtin_operand: SPECIAL_REGISTER DIMENSION_MODIFIER
+  248                | SPECIAL_REGISTER
+
+  249 memory_operand: LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  250               | IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+  253               | MINUS memory_operand
+
+  254 twin_operand: IDENTIFIER PLUS IDENTIFIER
+  255             | IDENTIFIER PLUS IDENTIFIER LO_OPTION
+  256             | IDENTIFIER PLUS IDENTIFIER HI_OPTION
+  257             | IDENTIFIER PLUS EQUALS IDENTIFIER
+  258             | IDENTIFIER PLUS EQUALS IDENTIFIER LO_OPTION
+  259             | IDENTIFIER PLUS EQUALS IDENTIFIER HI_OPTION
+  260             | IDENTIFIER PLUS EQUALS INT_OPERAND
+
+  261 literal_operand: INT_OPERAND
+  262                | FLOAT_OPERAND
+  263                | DOUBLE_OPERAND
+
+  264 address_expression: IDENTIFIER
+  265                   | IDENTIFIER LO_OPTION
+  266                   | IDENTIFIER HI_OPTION
+  267                   | IDENTIFIER PLUS INT_OPERAND
+  268                   | INT_OPERAND
+
+
+終結語詞，附有它們出現處的規則
+
+$end (0) 0
+error (256)
+STRING (258) 58 60
+OPCODE (259) 132 133
+ALIGN_DIRECTIVE (260) 43 80
+BRANCHTARGETS_DIRECTIVE (261)
+BYTE_DIRECTIVE (262)
+CALLPROTOTYPE_DIRECTIVE (263)
+CALLTARGETS_DIRECTIVE (264)
+CONST_DIRECTIVE (265) 84
+CONSTPTR_DIRECTIVE (266) 66
+PTR_DIRECTIVE (267) 38 39
+ENTRY_DIRECTIVE (268) 25
+EXTERN_DIRECTIVE (269) 28 79
+FILE_DIRECTIVE (270) 58
+FUNC_DIRECTIVE (271) 26 27 28
+GLOBAL_DIRECTIVE (272) 40 85
+LOCAL_DIRECTIVE (273) 41 86
+LOC_DIRECTIVE (274) 59
+MAXNCTAPERSM_DIRECTIVE (275) 12
+MAXNNREG_DIRECTIVE (276)
+MAXNTID_DIRECTIVE (277) 10
+MINNCTAPERSM_DIRECTIVE (278) 11 62
+PARAM_DIRECTIVE (279) 34 87
+PRAGMA_DIRECTIVE (280) 60
+REG_DIRECTIVE (281) 36 81
+REQNTID_DIRECTIVE (282)
+SECTION_DIRECTIVE (283)
+SHARED_DIRECTIVE (284) 42 88
+SREG_DIRECTIVE (285) 82
+STRUCT_DIRECTIVE (286)
+SURF_DIRECTIVE (287) 89
+TARGET_DIRECTIVE (288) 55 56 57
+TEX_DIRECTIVE (289) 90
+UNION_DIRECTIVE (290)
+VERSION_DIRECTIVE (291) 52 53
+ADDRESS_SIZE_DIRECTIVE (292) 54
+VISIBLE_DIRECTIVE (293) 27
+IDENTIFIER (294) 23 24 55 56 57 66 70 71 72 73 123 134 135 136 137
+    138 139 140 141 142 143 144 145 146 221 222 223 230 231 232 233
+    234 235 236 237 238 239 240 241 242 243 244 246 250 251 252 254
+    255 256 257 258 259 260 264 265 266 267
+INT_OPERAND (295) 10 11 12 43 54 58 59 62 66 71 73 80 230 260 261 267
+    268
+FLOAT_OPERAND (296) 262
+DOUBLE_OPERAND (297) 52 53 263
+S8_TYPE (298) 96
+S16_TYPE (299) 97
+S32_TYPE (300) 98
+S64_TYPE (301) 99
+U8_TYPE (302) 100
+U16_TYPE (303) 101
+U32_TYPE (304) 102
+U64_TYPE (305) 103
+F16_TYPE (306) 104
+F32_TYPE (307) 105
+F64_TYPE (308) 106
+FF64_TYPE (309) 107
+B8_TYPE (310) 108
+B16_TYPE (311) 109
+B32_TYPE (312) 110
+B64_TYPE (313) 111
+BB64_TYPE (314) 112
+BB128_TYPE (315) 113
+PRED_TYPE (316) 114
+TEXREF_TYPE (317) 115
+SAMPLERREF_TYPE (318) 116
+SURFREF_TYPE (319) 117
+V2_TYPE (320) 93
+V3_TYPE (321) 94
+V4_TYPE (322) 95
+COMMA (323) 10 32 55 56 66 69 121 126 127 128 220 241 242 243 246
+PRED (324) 134 135 136 137 138 139 140 141 142 143 144 145 146
+HALF_OPTION (325) 173
+EQ_OPTION (326) 137 201
+NE_OPTION (327) 139 202
+LT_OPTION (328) 136 203
+LE_OPTION (329) 138 204
+GT_OPTION (330) 205
+GE_OPTION (331) 140 206
+LO_OPTION (332) 207 231 232 236 239 255 258 265
+LS_OPTION (333) 208
+HI_OPTION (334) 209 233 234 237 240 256 259 266
+HS_OPTION (335) 210
+EQU_OPTION (336) 141 211
+NEU_OPTION (337) 143 212
+LTU_OPTION (338) 213
+LEU_OPTION (339) 214
+GTU_OPTION (340) 142 215
+GEU_OPTION (341) 216
+NUM_OPTION (342) 217
+NAN_OPTION (343) 218
+CF_OPTION (344) 144
+SF_OPTION (345) 145
+NSF_OPTION (346) 146
+LEFT_SQUARE_BRACKET (347) 72 73 246 249 250 251 252
+RIGHT_SQUARE_BRACKET (348) 72 73 246 249 250 251 252
+WIDE_OPTION (349) 154
+SPECIAL_REGISTER (350) 247 248
+MINUS (351) 223 228 232 234 253
+PLUS (352) 53 230 254 255 256 257 258 259 260 267
+COLON (353) 123
+SEMI_COLON (354) 51 60 61 122 124
+EXCLAMATION (355) 135 222
+PIPE (356) 235 236 237
+RIGHT_BRACE (357) 44 118 119 241 242 243 244
+LEFT_BRACE (358) 44 118 119 241 242 243 244
+EQUALS (359) 64 65 257 258 259 260
+PERIOD (360)
+BACKSLASH (361) 238 239 240
+DIMENSION_MODIFIER (362) 247
+RN_OPTION (363) 193
+RZ_OPTION (364) 194
+RM_OPTION (365) 195
+RP_OPTION (366) 196
+RNI_OPTION (367) 197
+RZI_OPTION (368) 198
+RMI_OPTION (369) 199
+RPI_OPTION (370) 200
+UNI_OPTION (371) 153
+GEOM_MODIFIER_1D (372) 161
+GEOM_MODIFIER_2D (373) 162
+GEOM_MODIFIER_3D (374) 163
+SAT_OPTION (375) 164
+FTZ_OPTION (376) 165
+NEG_OPTION (377) 166
+ATOMIC_AND (378) 181
+ATOMIC_OR (379) 182
+ATOMIC_XOR (380) 183
+ATOMIC_CAS (381) 184
+ATOMIC_EXCH (382) 185
+ATOMIC_ADD (383) 186
+ATOMIC_INC (384) 187
+ATOMIC_DEC (385) 188
+ATOMIC_MIN (386) 189
+ATOMIC_MAX (387) 190
+LEFT_ANGLE_BRACKET (388) 71
+RIGHT_ANGLE_BRACKET (389) 71
+LEFT_PAREN (390) 17 23 126 127 128
+RIGHT_PAREN (391) 17 23 126 127 128
+APPROX_OPTION (392) 167
+FULL_OPTION (393) 168
+ANY_OPTION (394) 155
+ALL_OPTION (395) 156
+BALLOT_OPTION (396) 157
+GLOBAL_OPTION (397) 158
+CTA_OPTION (398) 159
+SYS_OPTION (399) 160
+EXIT_OPTION (400) 169
+ABS_OPTION (401) 170
+TO_OPTION (402) 172
+CA_OPTION (403) 174
+CG_OPTION (404) 175
+CS_OPTION (405) 176
+LU_OPTION (406) 177
+CV_OPTION (407) 178
+WB_OPTION (408) 179
+WT_OPTION (409) 180
+
+
+非終結語詞，附有它們出現處的規則
+
+$accept (155)
+    於左側： 0
+input (156)
+    於左側： 1 2 3 4, 於右側： 0 2 3 4
+function_defn (157)
+    於左側： 6 9, 於右側： 3
+$@1 (158)
+    於左側： 5, 於右側： 6
+$@2 (159)
+    於左側： 7, 於右側： 9
+$@3 (160)
+    於左側： 8, 於右側： 9
+block_spec (161)
+    於左側： 10 11 12, 於右側： 13 14
+block_spec_list (162)
+    於左側： 13 14, 於右側： 9 14
+function_decl (163)
+    於左側： 17 19 20, 於右側： 4 6 9 61
+$@4 (164)
+    於左側： 15, 於右側： 17
+$@5 (165)
+    於左側： 16, 於右側： 17
+$@6 (166)
+    於左側： 18, 於右側： 19
+function_ident_param (167)
+    於左側： 23 24, 於右側： 17 19
+$@7 (168)
+    於左側： 21, 於右側： 23
+$@8 (169)
+    於左側： 22, 於右側： 23
+function_decl_header (170)
+    於左側： 25 26 27 28, 於右側： 17 19 20
+param_list (171)
+    於左側： 29 30 32, 於右側： 23 32
+$@9 (172)
+    於左側： 31, 於右側： 32
+param_entry (173)
+    於左側： 34 36, 於右側： 17 30 32
+$@10 (174)
+    於左側： 33, 於右側： 34
+$@11 (175)
+    於左側： 35, 於右側： 36
+ptr_spec (176)
+    於左側： 37 38 39, 於右側： 34
+ptr_space_spec (177)
+    於左側： 40 41 42, 於右側： 38
+ptr_align_spec (178)
+    於左側： 43, 於右側： 38 39
+statement_block (179)
+    於左側： 44, 於右側： 6 9 49 50
+statement_list (180)
+    於左側： 45 46 47 48 49 50, 於右側： 44 47 48 49
+directive_statement (181)
+    於左側： 51 52 53 54 55 56 57 58 59 60 61 62, 於右側：
+    2 45 47
+variable_declaration (182)
+    於左側： 63 64 65 66, 於右側： 51
+variable_spec (183)
+    於左側： 67, 於右側： 34 36 63 64 65
+identifier_list (184)
+    於左側： 68 69, 於右側： 63 69
+identifier_spec (185)
+    於左側： 70 71 72 73, 於右側： 34 36 64 65 68 69
+var_spec_list (186)
+    於左側： 74 75, 於右側： 67 75
+var_spec (187)
+    於左側： 76 77 78 79, 於右側： 74 75
+align_spec (188)
+    於左側： 80, 於右側： 78
+space_spec (189)
+    於左側： 81 82 83, 於右側： 76
+addressable_spec (190)
+    於左側： 84 85 86 87 88 89 90, 於右側： 83 151
+type_spec (191)
+    於左側： 91 92, 於右側： 77 149
+vector_spec (192)
+    於左側： 93 94 95, 於右側： 92
+scalar_type (193)
+    於左側： 96 97 98 99 100 101 102 103 104 105 106 107 108 109
+    110 111 112 113 114 115 116 117, 於右側： 91 92
+initializer_list (194)
+    於左側： 118 119, 於右側： 64 119
+literal_list (195)
+    於左側： 120 121, 於右側： 118 121
+instruction_statement (196)
+    於左側： 122 123 124, 於右側： 46 48
+instruction (197)
+    於左側： 126 127 128 129 130, 於右側： 122 124
+$@12 (198)
+    於左側： 125, 於右側： 126
+opcode_spec (199)
+    於左側： 132 133, 於右側： 126 127 128 129 130
+$@13 (200)
+    於左側： 131, 於右側： 132
+pred_spec (201)
+    於左側： 134 135 136 137 138 139 140 141 142 143 144 145 146,
+    於右側： 124
+option_list (202)
+    於左側： 147 148, 於右側： 132 148
+option (203)
+    於左側： 149 150 151 152 153 154 155 156 157 158 159 160 161
+    162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177
+    178 179 180, 於右側： 147 148
+atomic_operation_spec (204)
+    於左側： 181 182 183 184 185 186 187 188 189 190, 於右側：
+    171
+rounding_mode (205)
+    於左側： 191 192, 於右側： 152
+floating_point_rounding_mode (206)
+    於左側： 193 194 195 196, 於右側： 191
+integer_rounding_mode (207)
+    於左側： 197 198 199 200, 於右側： 192
+compare_spec (208)
+    於左側： 201 202 203 204 205 206 207 208 209 210 211 212 213
+    214 215 216 217 218, 於右側： 150
+operand_list (209)
+    於左側： 219 220, 於右側： 126 127 129 220
+operand (210)
+    於左側： 221 222 223 224 225 226 227 228 229 230 231 232 233
+    234 235 236 237 238 239 240, 於右側： 126 127 128 219 220
+vector_operand (211)
+    於左側： 241 242 243 244, 於右側： 227 228 246
+tex_operand (212)
+    於左側： 246, 於右側： 229
+$@14 (213)
+    於左側： 245, 於右側： 246
+builtin_operand (214)
+    於左側： 247 248, 於右側： 226
+memory_operand (215)
+    於左側： 249 250 251 252 253, 於右側： 224 253
+twin_operand (216)
+    於左側： 254 255 256 257 258 259 260, 於右側： 252
+literal_operand (217)
+    於左側： 261 262 263, 於右側： 65 120 121 225 251
+address_expression (218)
+    於左側： 264 265 266 267 268, 於右側： 249 250
+
+
+狀態 0
+
+    0 $accept: . input $end
+    1 input: . %empty
+    2      | . input directive_statement
+    3      | . input function_defn
+    4      | . input function_decl
+
+    $預設  使用規則 1 以縮減 (input)
+
+    input  進入狀態 1
+
+
+狀態 1
+
+    0 $accept: input . $end
+    2 input: input . directive_statement
+    3      | input . function_defn
+    4      | input . function_decl
+    6 function_defn: . function_decl $@1 statement_block
+    9              | . function_decl $@2 block_spec_list $@3 statement_block
+   17 function_decl: . function_decl_header LEFT_PAREN $@4 param_entry RIGHT_PAREN $@5 function_ident_param
+   19              | . function_decl_header $@6 function_ident_param
+   20              | . function_decl_header
+   25 function_decl_header: . ENTRY_DIRECTIVE
+   26                     | . FUNC_DIRECTIVE
+   27                     | . VISIBLE_DIRECTIVE FUNC_DIRECTIVE
+   28                     | . EXTERN_DIRECTIVE FUNC_DIRECTIVE
+   51 directive_statement: . variable_declaration SEMI_COLON
+   52                    | . VERSION_DIRECTIVE DOUBLE_OPERAND
+   53                    | . VERSION_DIRECTIVE DOUBLE_OPERAND PLUS
+   54                    | . ADDRESS_SIZE_DIRECTIVE INT_OPERAND
+   55                    | . TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER
+   56                    | . TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER
+   57                    | . TARGET_DIRECTIVE IDENTIFIER
+   58                    | . FILE_DIRECTIVE INT_OPERAND STRING
+   59                    | . LOC_DIRECTIVE INT_OPERAND INT_OPERAND INT_OPERAND
+   60                    | . PRAGMA_DIRECTIVE STRING SEMI_COLON
+   61                    | . function_decl SEMI_COLON
+   62                    | . MINNCTAPERSM_DIRECTIVE INT_OPERAND
+   63 variable_declaration: . variable_spec identifier_list
+   64                     | . variable_spec identifier_spec EQUALS initializer_list
+   65                     | . variable_spec identifier_spec EQUALS literal_operand
+   66                     | . CONSTPTR_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA INT_OPERAND
+   67 variable_spec: . var_spec_list
+   74 var_spec_list: . var_spec
+   75              | . var_spec_list var_spec
+   76 var_spec: . space_spec
+   77         | . type_spec
+   78         | . align_spec
+   79         | . EXTERN_DIRECTIVE
+   80 align_spec: . ALIGN_DIRECTIVE INT_OPERAND
+   81 space_spec: . REG_DIRECTIVE
+   82           | . SREG_DIRECTIVE
+   83           | . addressable_spec
+   84 addressable_spec: . CONST_DIRECTIVE
+   85                 | . GLOBAL_DIRECTIVE
+   86                 | . LOCAL_DIRECTIVE
+   87                 | . PARAM_DIRECTIVE
+   88                 | . SHARED_DIRECTIVE
+   89                 | . SURF_DIRECTIVE
+   90                 | . TEX_DIRECTIVE
+   91 type_spec: . scalar_type
+   92          | . vector_spec scalar_type
+   93 vector_spec: . V2_TYPE
+   94            | . V3_TYPE
+   95            | . V4_TYPE
+   96 scalar_type: . S8_TYPE
+   97            | . S16_TYPE
+   98            | . S32_TYPE
+   99            | . S64_TYPE
+  100            | . U8_TYPE
+  101            | . U16_TYPE
+  102            | . U32_TYPE
+  103            | . U64_TYPE
+  104            | . F16_TYPE
+  105            | . F32_TYPE
+  106            | . F64_TYPE
+  107            | . FF64_TYPE
+  108            | . B8_TYPE
+  109            | . B16_TYPE
+  110            | . B32_TYPE
+  111            | . B64_TYPE
+  112            | . BB64_TYPE
+  113            | . BB128_TYPE
+  114            | . PRED_TYPE
+  115            | . TEXREF_TYPE
+  116            | . SAMPLERREF_TYPE
+  117            | . SURFREF_TYPE
+
+    $end                    偏移，並進入狀態 2
+    ALIGN_DIRECTIVE         偏移，並進入狀態 3
+    CONST_DIRECTIVE         偏移，並進入狀態 4
+    CONSTPTR_DIRECTIVE      偏移，並進入狀態 5
+    ENTRY_DIRECTIVE         偏移，並進入狀態 6
+    EXTERN_DIRECTIVE        偏移，並進入狀態 7
+    FILE_DIRECTIVE          偏移，並進入狀態 8
+    FUNC_DIRECTIVE          偏移，並進入狀態 9
+    GLOBAL_DIRECTIVE        偏移，並進入狀態 10
+    LOCAL_DIRECTIVE         偏移，並進入狀態 11
+    LOC_DIRECTIVE           偏移，並進入狀態 12
+    MINNCTAPERSM_DIRECTIVE  偏移，並進入狀態 13
+    PARAM_DIRECTIVE         偏移，並進入狀態 14
+    PRAGMA_DIRECTIVE        偏移，並進入狀態 15
+    REG_DIRECTIVE           偏移，並進入狀態 16
+    SHARED_DIRECTIVE        偏移，並進入狀態 17
+    SREG_DIRECTIVE          偏移，並進入狀態 18
+    SURF_DIRECTIVE          偏移，並進入狀態 19
+    TARGET_DIRECTIVE        偏移，並進入狀態 20
+    TEX_DIRECTIVE           偏移，並進入狀態 21
+    VERSION_DIRECTIVE       偏移，並進入狀態 22
+    ADDRESS_SIZE_DIRECTIVE  偏移，並進入狀態 23
+    VISIBLE_DIRECTIVE       偏移，並進入狀態 24
+    S8_TYPE                 偏移，並進入狀態 25
+    S16_TYPE                偏移，並進入狀態 26
+    S32_TYPE                偏移，並進入狀態 27
+    S64_TYPE                偏移，並進入狀態 28
+    U8_TYPE                 偏移，並進入狀態 29
+    U16_TYPE                偏移，並進入狀態 30
+    U32_TYPE                偏移，並進入狀態 31
+    U64_TYPE                偏移，並進入狀態 32
+    F16_TYPE                偏移，並進入狀態 33
+    F32_TYPE                偏移，並進入狀態 34
+    F64_TYPE                偏移，並進入狀態 35
+    FF64_TYPE               偏移，並進入狀態 36
+    B8_TYPE                 偏移，並進入狀態 37
+    B16_TYPE                偏移，並進入狀態 38
+    B32_TYPE                偏移，並進入狀態 39
+    B64_TYPE                偏移，並進入狀態 40
+    BB64_TYPE               偏移，並進入狀態 41
+    BB128_TYPE              偏移，並進入狀態 42
+    PRED_TYPE               偏移，並進入狀態 43
+    TEXREF_TYPE             偏移，並進入狀態 44
+    SAMPLERREF_TYPE         偏移，並進入狀態 45
+    SURFREF_TYPE            偏移，並進入狀態 46
+    V2_TYPE                 偏移，並進入狀態 47
+    V3_TYPE                 偏移，並進入狀態 48
+    V4_TYPE                 偏移，並進入狀態 49
+
+    function_defn         進入狀態 50
+    function_decl         進入狀態 51
+    function_decl_header  進入狀態 52
+    directive_statement   進入狀態 53
+    variable_declaration  進入狀態 54
+    variable_spec         進入狀態 55
+    var_spec_list         進入狀態 56
+    var_spec              進入狀態 57
+    align_spec            進入狀態 58
+    space_spec            進入狀態 59
+    addressable_spec      進入狀態 60
+    type_spec             進入狀態 61
+    vector_spec           進入狀態 62
+    scalar_type           進入狀態 63
+
+
+狀態 2
+
+    0 $accept: input $end .
+
+    $預設  接受
+
+
+狀態 3
+
+   80 align_spec: ALIGN_DIRECTIVE . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 64
+
+
+狀態 4
+
+   84 addressable_spec: CONST_DIRECTIVE .
+
+    $預設  使用規則 84 以縮減 (addressable_spec)
+
+
+狀態 5
+
+   66 variable_declaration: CONSTPTR_DIRECTIVE . IDENTIFIER COMMA IDENTIFIER COMMA INT_OPERAND
+
+    IDENTIFIER  偏移，並進入狀態 65
+
+
+狀態 6
+
+   25 function_decl_header: ENTRY_DIRECTIVE .
+
+    $預設  使用規則 25 以縮減 (function_decl_header)
+
+
+狀態 7
+
+   28 function_decl_header: EXTERN_DIRECTIVE . FUNC_DIRECTIVE
+   79 var_spec: EXTERN_DIRECTIVE .  [ALIGN_DIRECTIVE, CONST_DIRECTIVE, EXTERN_DIRECTIVE, GLOBAL_DIRECTIVE, LOCAL_DIRECTIVE, PARAM_DIRECTIVE, REG_DIRECTIVE, SHARED_DIRECTIVE, SREG_DIRECTIVE, SURF_DIRECTIVE, TEX_DIRECTIVE, IDENTIFIER, S8_TYPE, S16_TYPE, S32_TYPE, S64_TYPE, U8_TYPE, U16_TYPE, U32_TYPE, U64_TYPE, F16_TYPE, F32_TYPE, F64_TYPE, FF64_TYPE, B8_TYPE, B16_TYPE, B32_TYPE, B64_TYPE, BB64_TYPE, BB128_TYPE, PRED_TYPE, TEXREF_TYPE, SAMPLERREF_TYPE, SURFREF_TYPE, V2_TYPE, V3_TYPE, V4_TYPE]
+
+    FUNC_DIRECTIVE  偏移，並進入狀態 66
+
+    $預設  使用規則 79 以縮減 (var_spec)
+
+
+狀態 8
+
+   58 directive_statement: FILE_DIRECTIVE . INT_OPERAND STRING
+
+    INT_OPERAND  偏移，並進入狀態 67
+
+
+狀態 9
+
+   26 function_decl_header: FUNC_DIRECTIVE .
+
+    $預設  使用規則 26 以縮減 (function_decl_header)
+
+
+狀態 10
+
+   85 addressable_spec: GLOBAL_DIRECTIVE .
+
+    $預設  使用規則 85 以縮減 (addressable_spec)
+
+
+狀態 11
+
+   86 addressable_spec: LOCAL_DIRECTIVE .
+
+    $預設  使用規則 86 以縮減 (addressable_spec)
+
+
+狀態 12
+
+   59 directive_statement: LOC_DIRECTIVE . INT_OPERAND INT_OPERAND INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 68
+
+
+狀態 13
+
+   62 directive_statement: MINNCTAPERSM_DIRECTIVE . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 69
+
+
+狀態 14
+
+   87 addressable_spec: PARAM_DIRECTIVE .
+
+    $預設  使用規則 87 以縮減 (addressable_spec)
+
+
+狀態 15
+
+   60 directive_statement: PRAGMA_DIRECTIVE . STRING SEMI_COLON
+
+    STRING  偏移，並進入狀態 70
+
+
+狀態 16
+
+   81 space_spec: REG_DIRECTIVE .
+
+    $預設  使用規則 81 以縮減 (space_spec)
+
+
+狀態 17
+
+   88 addressable_spec: SHARED_DIRECTIVE .
+
+    $預設  使用規則 88 以縮減 (addressable_spec)
+
+
+狀態 18
+
+   82 space_spec: SREG_DIRECTIVE .
+
+    $預設  使用規則 82 以縮減 (space_spec)
+
+
+狀態 19
+
+   89 addressable_spec: SURF_DIRECTIVE .
+
+    $預設  使用規則 89 以縮減 (addressable_spec)
+
+
+狀態 20
+
+   55 directive_statement: TARGET_DIRECTIVE . IDENTIFIER COMMA IDENTIFIER
+   56                    | TARGET_DIRECTIVE . IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER
+   57                    | TARGET_DIRECTIVE . IDENTIFIER
+
+    IDENTIFIER  偏移，並進入狀態 71
+
+
+狀態 21
+
+   90 addressable_spec: TEX_DIRECTIVE .
+
+    $預設  使用規則 90 以縮減 (addressable_spec)
+
+
+狀態 22
+
+   52 directive_statement: VERSION_DIRECTIVE . DOUBLE_OPERAND
+   53                    | VERSION_DIRECTIVE . DOUBLE_OPERAND PLUS
+
+    DOUBLE_OPERAND  偏移，並進入狀態 72
+
+
+狀態 23
+
+   54 directive_statement: ADDRESS_SIZE_DIRECTIVE . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 73
+
+
+狀態 24
+
+   27 function_decl_header: VISIBLE_DIRECTIVE . FUNC_DIRECTIVE
+
+    FUNC_DIRECTIVE  偏移，並進入狀態 74
+
+
+狀態 25
+
+   96 scalar_type: S8_TYPE .
+
+    $預設  使用規則 96 以縮減 (scalar_type)
+
+
+狀態 26
+
+   97 scalar_type: S16_TYPE .
+
+    $預設  使用規則 97 以縮減 (scalar_type)
+
+
+狀態 27
+
+   98 scalar_type: S32_TYPE .
+
+    $預設  使用規則 98 以縮減 (scalar_type)
+
+
+狀態 28
+
+   99 scalar_type: S64_TYPE .
+
+    $預設  使用規則 99 以縮減 (scalar_type)
+
+
+狀態 29
+
+  100 scalar_type: U8_TYPE .
+
+    $預設  使用規則 100 以縮減 (scalar_type)
+
+
+狀態 30
+
+  101 scalar_type: U16_TYPE .
+
+    $預設  使用規則 101 以縮減 (scalar_type)
+
+
+狀態 31
+
+  102 scalar_type: U32_TYPE .
+
+    $預設  使用規則 102 以縮減 (scalar_type)
+
+
+狀態 32
+
+  103 scalar_type: U64_TYPE .
+
+    $預設  使用規則 103 以縮減 (scalar_type)
+
+
+狀態 33
+
+  104 scalar_type: F16_TYPE .
+
+    $預設  使用規則 104 以縮減 (scalar_type)
+
+
+狀態 34
+
+  105 scalar_type: F32_TYPE .
+
+    $預設  使用規則 105 以縮減 (scalar_type)
+
+
+狀態 35
+
+  106 scalar_type: F64_TYPE .
+
+    $預設  使用規則 106 以縮減 (scalar_type)
+
+
+狀態 36
+
+  107 scalar_type: FF64_TYPE .
+
+    $預設  使用規則 107 以縮減 (scalar_type)
+
+
+狀態 37
+
+  108 scalar_type: B8_TYPE .
+
+    $預設  使用規則 108 以縮減 (scalar_type)
+
+
+狀態 38
+
+  109 scalar_type: B16_TYPE .
+
+    $預設  使用規則 109 以縮減 (scalar_type)
+
+
+狀態 39
+
+  110 scalar_type: B32_TYPE .
+
+    $預設  使用規則 110 以縮減 (scalar_type)
+
+
+狀態 40
+
+  111 scalar_type: B64_TYPE .
+
+    $預設  使用規則 111 以縮減 (scalar_type)
+
+
+狀態 41
+
+  112 scalar_type: BB64_TYPE .
+
+    $預設  使用規則 112 以縮減 (scalar_type)
+
+
+狀態 42
+
+  113 scalar_type: BB128_TYPE .
+
+    $預設  使用規則 113 以縮減 (scalar_type)
+
+
+狀態 43
+
+  114 scalar_type: PRED_TYPE .
+
+    $預設  使用規則 114 以縮減 (scalar_type)
+
+
+狀態 44
+
+  115 scalar_type: TEXREF_TYPE .
+
+    $預設  使用規則 115 以縮減 (scalar_type)
+
+
+狀態 45
+
+  116 scalar_type: SAMPLERREF_TYPE .
+
+    $預設  使用規則 116 以縮減 (scalar_type)
+
+
+狀態 46
+
+  117 scalar_type: SURFREF_TYPE .
+
+    $預設  使用規則 117 以縮減 (scalar_type)
+
+
+狀態 47
+
+   93 vector_spec: V2_TYPE .
+
+    $預設  使用規則 93 以縮減 (vector_spec)
+
+
+狀態 48
+
+   94 vector_spec: V3_TYPE .
+
+    $預設  使用規則 94 以縮減 (vector_spec)
+
+
+狀態 49
+
+   95 vector_spec: V4_TYPE .
+
+    $預設  使用規則 95 以縮減 (vector_spec)
+
+
+狀態 50
+
+    3 input: input function_defn .
+
+    $預設  使用規則 3 以縮減 (input)
+
+
+狀態 51
+
+    4 input: input function_decl .  [$end, ALIGN_DIRECTIVE, CONST_DIRECTIVE, CONSTPTR_DIRECTIVE, ENTRY_DIRECTIVE, EXTERN_DIRECTIVE, FILE_DIRECTIVE, FUNC_DIRECTIVE, GLOBAL_DIRECTIVE, LOCAL_DIRECTIVE, LOC_DIRECTIVE, MINNCTAPERSM_DIRECTIVE, PARAM_DIRECTIVE, PRAGMA_DIRECTIVE, REG_DIRECTIVE, SHARED_DIRECTIVE, SREG_DIRECTIVE, SURF_DIRECTIVE, TARGET_DIRECTIVE, TEX_DIRECTIVE, VERSION_DIRECTIVE, ADDRESS_SIZE_DIRECTIVE, VISIBLE_DIRECTIVE, S8_TYPE, S16_TYPE, S32_TYPE, S64_TYPE, U8_TYPE, U16_TYPE, U32_TYPE, U64_TYPE, F16_TYPE, F32_TYPE, F64_TYPE, FF64_TYPE, B8_TYPE, B16_TYPE, B32_TYPE, B64_TYPE, BB64_TYPE, BB128_TYPE, PRED_TYPE, TEXREF_TYPE, SAMPLERREF_TYPE, SURFREF_TYPE, V2_TYPE, V3_TYPE, V4_TYPE]
+    5 $@1: . %empty  [LEFT_BRACE]
+    6 function_defn: function_decl . $@1 statement_block
+    7 $@2: . %empty  [MAXNCTAPERSM_DIRECTIVE, MAXNTID_DIRECTIVE, MINNCTAPERSM_DIRECTIVE]
+    9 function_defn: function_decl . $@2 block_spec_list $@3 statement_block
+   61 directive_statement: function_decl . SEMI_COLON
+
+    SEMI_COLON  偏移，並進入狀態 75
+
+    MAXNCTAPERSM_DIRECTIVE  使用規則 7 以縮減 ($@2)
+    MAXNTID_DIRECTIVE       使用規則 7 以縮減 ($@2)
+    MINNCTAPERSM_DIRECTIVE  使用規則 4 以縮減 (input)
+    MINNCTAPERSM_DIRECTIVE  [使用規則 7 以縮減 ($@2)]
+    LEFT_BRACE              使用規則 5 以縮減 ($@1)
+    $預設                 使用規則 4 以縮減 (input)
+
+    $@1  進入狀態 76
+    $@2  進入狀態 77
+
+
+狀態 52
+
+   17 function_decl: function_decl_header . LEFT_PAREN $@4 param_entry RIGHT_PAREN $@5 function_ident_param
+   18 $@6: . %empty  [IDENTIFIER]
+   19 function_decl: function_decl_header . $@6 function_ident_param
+   20              | function_decl_header .  [$end, ALIGN_DIRECTIVE, CONST_DIRECTIVE, CONSTPTR_DIRECTIVE, ENTRY_DIRECTIVE, EXTERN_DIRECTIVE, FILE_DIRECTIVE, FUNC_DIRECTIVE, GLOBAL_DIRECTIVE, LOCAL_DIRECTIVE, LOC_DIRECTIVE, MAXNCTAPERSM_DIRECTIVE, MAXNTID_DIRECTIVE, MINNCTAPERSM_DIRECTIVE, PARAM_DIRECTIVE, PRAGMA_DIRECTIVE, REG_DIRECTIVE, SHARED_DIRECTIVE, SREG_DIRECTIVE, SURF_DIRECTIVE, TARGET_DIRECTIVE, TEX_DIRECTIVE, VERSION_DIRECTIVE, ADDRESS_SIZE_DIRECTIVE, VISIBLE_DIRECTIVE, S8_TYPE, S16_TYPE, S32_TYPE, S64_TYPE, U8_TYPE, U16_TYPE, U32_TYPE, U64_TYPE, F16_TYPE, F32_TYPE, F64_TYPE, FF64_TYPE, B8_TYPE, B16_TYPE, B32_TYPE, B64_TYPE, BB64_TYPE, BB128_TYPE, PRED_TYPE, TEXREF_TYPE, SAMPLERREF_TYPE, SURFREF_TYPE, V2_TYPE, V3_TYPE, V4_TYPE, SEMI_COLON, LEFT_BRACE]
+
+    LEFT_PAREN  偏移，並進入狀態 78
+
+    IDENTIFIER  使用規則 18 以縮減 ($@6)
+    $預設     使用規則 20 以縮減 (function_decl)
+
+    $@6  進入狀態 79
+
+
+狀態 53
+
+    2 input: input directive_statement .
+
+    $預設  使用規則 2 以縮減 (input)
+
+
+狀態 54
+
+   51 directive_statement: variable_declaration . SEMI_COLON
+
+    SEMI_COLON  偏移，並進入狀態 80
+
+
+狀態 55
+
+   63 variable_declaration: variable_spec . identifier_list
+   64                     | variable_spec . identifier_spec EQUALS initializer_list
+   65                     | variable_spec . identifier_spec EQUALS literal_operand
+   68 identifier_list: . identifier_spec
+   69                | . identifier_list COMMA identifier_spec
+   70 identifier_spec: . IDENTIFIER
+   71                | . IDENTIFIER LEFT_ANGLE_BRACKET INT_OPERAND RIGHT_ANGLE_BRACKET
+   72                | . IDENTIFIER LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+   73                | . IDENTIFIER LEFT_SQUARE_BRACKET INT_OPERAND RIGHT_SQUARE_BRACKET
+
+    IDENTIFIER  偏移，並進入狀態 81
+
+    identifier_list  進入狀態 82
+    identifier_spec  進入狀態 83
+
+
+狀態 56
+
+   67 variable_spec: var_spec_list .  [PTR_DIRECTIVE, IDENTIFIER]
+   75 var_spec_list: var_spec_list . var_spec
+   76 var_spec: . space_spec
+   77         | . type_spec
+   78         | . align_spec
+   79         | . EXTERN_DIRECTIVE
+   80 align_spec: . ALIGN_DIRECTIVE INT_OPERAND
+   81 space_spec: . REG_DIRECTIVE
+   82           | . SREG_DIRECTIVE
+   83           | . addressable_spec
+   84 addressable_spec: . CONST_DIRECTIVE
+   85                 | . GLOBAL_DIRECTIVE
+   86                 | . LOCAL_DIRECTIVE
+   87                 | . PARAM_DIRECTIVE
+   88                 | . SHARED_DIRECTIVE
+   89                 | . SURF_DIRECTIVE
+   90                 | . TEX_DIRECTIVE
+   91 type_spec: . scalar_type
+   92          | . vector_spec scalar_type
+   93 vector_spec: . V2_TYPE
+   94            | . V3_TYPE
+   95            | . V4_TYPE
+   96 scalar_type: . S8_TYPE
+   97            | . S16_TYPE
+   98            | . S32_TYPE
+   99            | . S64_TYPE
+  100            | . U8_TYPE
+  101            | . U16_TYPE
+  102            | . U32_TYPE
+  103            | . U64_TYPE
+  104            | . F16_TYPE
+  105            | . F32_TYPE
+  106            | . F64_TYPE
+  107            | . FF64_TYPE
+  108            | . B8_TYPE
+  109            | . B16_TYPE
+  110            | . B32_TYPE
+  111            | . B64_TYPE
+  112            | . BB64_TYPE
+  113            | . BB128_TYPE
+  114            | . PRED_TYPE
+  115            | . TEXREF_TYPE
+  116            | . SAMPLERREF_TYPE
+  117            | . SURFREF_TYPE
+
+    ALIGN_DIRECTIVE   偏移，並進入狀態 3
+    CONST_DIRECTIVE   偏移，並進入狀態 4
+    EXTERN_DIRECTIVE  偏移，並進入狀態 84
+    GLOBAL_DIRECTIVE  偏移，並進入狀態 10
+    LOCAL_DIRECTIVE   偏移，並進入狀態 11
+    PARAM_DIRECTIVE   偏移，並進入狀態 14
+    REG_DIRECTIVE     偏移，並進入狀態 16
+    SHARED_DIRECTIVE  偏移，並進入狀態 17
+    SREG_DIRECTIVE    偏移，並進入狀態 18
+    SURF_DIRECTIVE    偏移，並進入狀態 19
+    TEX_DIRECTIVE     偏移，並進入狀態 21
+    S8_TYPE           偏移，並進入狀態 25
+    S16_TYPE          偏移，並進入狀態 26
+    S32_TYPE          偏移，並進入狀態 27
+    S64_TYPE          偏移，並進入狀態 28
+    U8_TYPE           偏移，並進入狀態 29
+    U16_TYPE          偏移，並進入狀態 30
+    U32_TYPE          偏移，並進入狀態 31
+    U64_TYPE          偏移，並進入狀態 32
+    F16_TYPE          偏移，並進入狀態 33
+    F32_TYPE          偏移，並進入狀態 34
+    F64_TYPE          偏移，並進入狀態 35
+    FF64_TYPE         偏移，並進入狀態 36
+    B8_TYPE           偏移，並進入狀態 37
+    B16_TYPE          偏移，並進入狀態 38
+    B32_TYPE          偏移，並進入狀態 39
+    B64_TYPE          偏移，並進入狀態 40
+    BB64_TYPE         偏移，並進入狀態 41
+    BB128_TYPE        偏移，並進入狀態 42
+    PRED_TYPE         偏移，並進入狀態 43
+    TEXREF_TYPE       偏移，並進入狀態 44
+    SAMPLERREF_TYPE   偏移，並進入狀態 45
+    SURFREF_TYPE      偏移，並進入狀態 46
+    V2_TYPE           偏移，並進入狀態 47
+    V3_TYPE           偏移，並進入狀態 48
+    V4_TYPE           偏移，並進入狀態 49
+
+    $預設  使用規則 67 以縮減 (variable_spec)
+
+    var_spec          進入狀態 85
+    align_spec        進入狀態 58
+    space_spec        進入狀態 59
+    addressable_spec  進入狀態 60
+    type_spec         進入狀態 61
+    vector_spec       進入狀態 62
+    scalar_type       進入狀態 63
+
+
+狀態 57
+
+   74 var_spec_list: var_spec .
+
+    $預設  使用規則 74 以縮減 (var_spec_list)
+
+
+狀態 58
+
+   78 var_spec: align_spec .
+
+    $預設  使用規則 78 以縮減 (var_spec)
+
+
+狀態 59
+
+   76 var_spec: space_spec .
+
+    $預設  使用規則 76 以縮減 (var_spec)
+
+
+狀態 60
+
+   83 space_spec: addressable_spec .
+
+    $預設  使用規則 83 以縮減 (space_spec)
+
+
+狀態 61
+
+   77 var_spec: type_spec .
+
+    $預設  使用規則 77 以縮減 (var_spec)
+
+
+狀態 62
+
+   92 type_spec: vector_spec . scalar_type
+   96 scalar_type: . S8_TYPE
+   97            | . S16_TYPE
+   98            | . S32_TYPE
+   99            | . S64_TYPE
+  100            | . U8_TYPE
+  101            | . U16_TYPE
+  102            | . U32_TYPE
+  103            | . U64_TYPE
+  104            | . F16_TYPE
+  105            | . F32_TYPE
+  106            | . F64_TYPE
+  107            | . FF64_TYPE
+  108            | . B8_TYPE
+  109            | . B16_TYPE
+  110            | . B32_TYPE
+  111            | . B64_TYPE
+  112            | . BB64_TYPE
+  113            | . BB128_TYPE
+  114            | . PRED_TYPE
+  115            | . TEXREF_TYPE
+  116            | . SAMPLERREF_TYPE
+  117            | . SURFREF_TYPE
+
+    S8_TYPE          偏移，並進入狀態 25
+    S16_TYPE         偏移，並進入狀態 26
+    S32_TYPE         偏移，並進入狀態 27
+    S64_TYPE         偏移，並進入狀態 28
+    U8_TYPE          偏移，並進入狀態 29
+    U16_TYPE         偏移，並進入狀態 30
+    U32_TYPE         偏移，並進入狀態 31
+    U64_TYPE         偏移，並進入狀態 32
+    F16_TYPE         偏移，並進入狀態 33
+    F32_TYPE         偏移，並進入狀態 34
+    F64_TYPE         偏移，並進入狀態 35
+    FF64_TYPE        偏移，並進入狀態 36
+    B8_TYPE          偏移，並進入狀態 37
+    B16_TYPE         偏移，並進入狀態 38
+    B32_TYPE         偏移，並進入狀態 39
+    B64_TYPE         偏移，並進入狀態 40
+    BB64_TYPE        偏移，並進入狀態 41
+    BB128_TYPE       偏移，並進入狀態 42
+    PRED_TYPE        偏移，並進入狀態 43
+    TEXREF_TYPE      偏移，並進入狀態 44
+    SAMPLERREF_TYPE  偏移，並進入狀態 45
+    SURFREF_TYPE     偏移，並進入狀態 46
+
+    scalar_type  進入狀態 86
+
+
+狀態 63
+
+   91 type_spec: scalar_type .
+
+    $預設  使用規則 91 以縮減 (type_spec)
+
+
+狀態 64
+
+   80 align_spec: ALIGN_DIRECTIVE INT_OPERAND .
+
+    $預設  使用規則 80 以縮減 (align_spec)
+
+
+狀態 65
+
+   66 variable_declaration: CONSTPTR_DIRECTIVE IDENTIFIER . COMMA IDENTIFIER COMMA INT_OPERAND
+
+    COMMA  偏移，並進入狀態 87
+
+
+狀態 66
+
+   28 function_decl_header: EXTERN_DIRECTIVE FUNC_DIRECTIVE .
+
+    $預設  使用規則 28 以縮減 (function_decl_header)
+
+
+狀態 67
+
+   58 directive_statement: FILE_DIRECTIVE INT_OPERAND . STRING
+
+    STRING  偏移，並進入狀態 88
+
+
+狀態 68
+
+   59 directive_statement: LOC_DIRECTIVE INT_OPERAND . INT_OPERAND INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 89
+
+
+狀態 69
+
+   62 directive_statement: MINNCTAPERSM_DIRECTIVE INT_OPERAND .
+
+    $預設  使用規則 62 以縮減 (directive_statement)
+
+
+狀態 70
+
+   60 directive_statement: PRAGMA_DIRECTIVE STRING . SEMI_COLON
+
+    SEMI_COLON  偏移，並進入狀態 90
+
+
+狀態 71
+
+   55 directive_statement: TARGET_DIRECTIVE IDENTIFIER . COMMA IDENTIFIER
+   56                    | TARGET_DIRECTIVE IDENTIFIER . COMMA IDENTIFIER COMMA IDENTIFIER
+   57                    | TARGET_DIRECTIVE IDENTIFIER .  [$end, OPCODE, ALIGN_DIRECTIVE, CONST_DIRECTIVE, CONSTPTR_DIRECTIVE, ENTRY_DIRECTIVE, EXTERN_DIRECTIVE, FILE_DIRECTIVE, FUNC_DIRECTIVE, GLOBAL_DIRECTIVE, LOCAL_DIRECTIVE, LOC_DIRECTIVE, MINNCTAPERSM_DIRECTIVE, PARAM_DIRECTIVE, PRAGMA_DIRECTIVE, REG_DIRECTIVE, SHARED_DIRECTIVE, SREG_DIRECTIVE, SURF_DIRECTIVE, TARGET_DIRECTIVE, TEX_DIRECTIVE, VERSION_DIRECTIVE, ADDRESS_SIZE_DIRECTIVE, VISIBLE_DIRECTIVE, IDENTIFIER, S8_TYPE, S16_TYPE, S32_TYPE, S64_TYPE, U8_TYPE, U16_TYPE, U32_TYPE, U64_TYPE, F16_TYPE, F32_TYPE, F64_TYPE, FF64_TYPE, B8_TYPE, B16_TYPE, B32_TYPE, B64_TYPE, BB64_TYPE, BB128_TYPE, PRED_TYPE, TEXREF_TYPE, SAMPLERREF_TYPE, SURFREF_TYPE, V2_TYPE, V3_TYPE, V4_TYPE, PRED, RIGHT_BRACE, LEFT_BRACE]
+
+    COMMA  偏移，並進入狀態 91
+
+    $預設  使用規則 57 以縮減 (directive_statement)
+
+
+狀態 72
+
+   52 directive_statement: VERSION_DIRECTIVE DOUBLE_OPERAND .  [$end, OPCODE, ALIGN_DIRECTIVE, CONST_DIRECTIVE, CONSTPTR_DIRECTIVE, ENTRY_DIRECTIVE, EXTERN_DIRECTIVE, FILE_DIRECTIVE, FUNC_DIRECTIVE, GLOBAL_DIRECTIVE, LOCAL_DIRECTIVE, LOC_DIRECTIVE, MINNCTAPERSM_DIRECTIVE, PARAM_DIRECTIVE, PRAGMA_DIRECTIVE, REG_DIRECTIVE, SHARED_DIRECTIVE, SREG_DIRECTIVE, SURF_DIRECTIVE, TARGET_DIRECTIVE, TEX_DIRECTIVE, VERSION_DIRECTIVE, ADDRESS_SIZE_DIRECTIVE, VISIBLE_DIRECTIVE, IDENTIFIER, S8_TYPE, S16_TYPE, S32_TYPE, S64_TYPE, U8_TYPE, U16_TYPE, U32_TYPE, U64_TYPE, F16_TYPE, F32_TYPE, F64_TYPE, FF64_TYPE, B8_TYPE, B16_TYPE, B32_TYPE, B64_TYPE, BB64_TYPE, BB128_TYPE, PRED_TYPE, TEXREF_TYPE, SAMPLERREF_TYPE, SURFREF_TYPE, V2_TYPE, V3_TYPE, V4_TYPE, PRED, RIGHT_BRACE, LEFT_BRACE]
+   53                    | VERSION_DIRECTIVE DOUBLE_OPERAND . PLUS
+
+    PLUS  偏移，並進入狀態 92
+
+    $預設  使用規則 52 以縮減 (directive_statement)
+
+
+狀態 73
+
+   54 directive_statement: ADDRESS_SIZE_DIRECTIVE INT_OPERAND .
+
+    $預設  使用規則 54 以縮減 (directive_statement)
+
+
+狀態 74
+
+   27 function_decl_header: VISIBLE_DIRECTIVE FUNC_DIRECTIVE .
+
+    $預設  使用規則 27 以縮減 (function_decl_header)
+
+
+狀態 75
+
+   61 directive_statement: function_decl SEMI_COLON .
+
+    $預設  使用規則 61 以縮減 (directive_statement)
+
+
+狀態 76
+
+    6 function_defn: function_decl $@1 . statement_block
+   44 statement_block: . LEFT_BRACE statement_list RIGHT_BRACE
+
+    LEFT_BRACE  偏移，並進入狀態 93
+
+    statement_block  進入狀態 94
+
+
+狀態 77
+
+    9 function_defn: function_decl $@2 . block_spec_list $@3 statement_block
+   10 block_spec: . MAXNTID_DIRECTIVE INT_OPERAND COMMA INT_OPERAND COMMA INT_OPERAND
+   11           | . MINNCTAPERSM_DIRECTIVE INT_OPERAND
+   12           | . MAXNCTAPERSM_DIRECTIVE INT_OPERAND
+   13 block_spec_list: . block_spec
+   14                | . block_spec_list block_spec
+
+    MAXNCTAPERSM_DIRECTIVE  偏移，並進入狀態 95
+    MAXNTID_DIRECTIVE       偏移，並進入狀態 96
+    MINNCTAPERSM_DIRECTIVE  偏移，並進入狀態 97
+
+    block_spec       進入狀態 98
+    block_spec_list  進入狀態 99
+
+
+狀態 78
+
+   15 $@4: . %empty
+   17 function_decl: function_decl_header LEFT_PAREN . $@4 param_entry RIGHT_PAREN $@5 function_ident_param
+
+    $預設  使用規則 15 以縮減 ($@4)
+
+    $@4  進入狀態 100
+
+
+狀態 79
+
+   19 function_decl: function_decl_header $@6 . function_ident_param
+   23 function_ident_param: . IDENTIFIER $@7 LEFT_PAREN $@8 param_list RIGHT_PAREN
+   24                     | . IDENTIFIER
+
+    IDENTIFIER  偏移，並進入狀態 101
+
+    function_ident_param  進入狀態 102
+
+
+狀態 80
+
+   51 directive_statement: variable_declaration SEMI_COLON .
+
+    $預設  使用規則 51 以縮減 (directive_statement)
+
+
+狀態 81
+
+   70 identifier_spec: IDENTIFIER .  [COMMA, SEMI_COLON, EQUALS, RIGHT_PAREN]
+   71                | IDENTIFIER . LEFT_ANGLE_BRACKET INT_OPERAND RIGHT_ANGLE_BRACKET
+   72                | IDENTIFIER . LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+   73                | IDENTIFIER . LEFT_SQUARE_BRACKET INT_OPERAND RIGHT_SQUARE_BRACKET
+
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 103
+    LEFT_ANGLE_BRACKET   偏移，並進入狀態 104
+
+    $預設  使用規則 70 以縮減 (identifier_spec)
+
+
+狀態 82
+
+   63 variable_declaration: variable_spec identifier_list .  [SEMI_COLON]
+   69 identifier_list: identifier_list . COMMA identifier_spec
+
+    COMMA  偏移，並進入狀態 105
+
+    $預設  使用規則 63 以縮減 (variable_declaration)
+
+
+狀態 83
+
+   64 variable_declaration: variable_spec identifier_spec . EQUALS initializer_list
+   65                     | variable_spec identifier_spec . EQUALS literal_operand
+   68 identifier_list: identifier_spec .  [COMMA, SEMI_COLON]
+
+    EQUALS  偏移，並進入狀態 106
+
+    $預設  使用規則 68 以縮減 (identifier_list)
+
+
+狀態 84
+
+   79 var_spec: EXTERN_DIRECTIVE .
+
+    $預設  使用規則 79 以縮減 (var_spec)
+
+
+狀態 85
+
+   75 var_spec_list: var_spec_list var_spec .
+
+    $預設  使用規則 75 以縮減 (var_spec_list)
+
+
+狀態 86
+
+   92 type_spec: vector_spec scalar_type .
+
+    $預設  使用規則 92 以縮減 (type_spec)
+
+
+狀態 87
+
+   66 variable_declaration: CONSTPTR_DIRECTIVE IDENTIFIER COMMA . IDENTIFIER COMMA INT_OPERAND
+
+    IDENTIFIER  偏移，並進入狀態 107
+
+
+狀態 88
+
+   58 directive_statement: FILE_DIRECTIVE INT_OPERAND STRING .
+
+    $預設  使用規則 58 以縮減 (directive_statement)
+
+
+狀態 89
+
+   59 directive_statement: LOC_DIRECTIVE INT_OPERAND INT_OPERAND . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 108
+
+
+狀態 90
+
+   60 directive_statement: PRAGMA_DIRECTIVE STRING SEMI_COLON .
+
+    $預設  使用規則 60 以縮減 (directive_statement)
+
+
+狀態 91
+
+   55 directive_statement: TARGET_DIRECTIVE IDENTIFIER COMMA . IDENTIFIER
+   56                    | TARGET_DIRECTIVE IDENTIFIER COMMA . IDENTIFIER COMMA IDENTIFIER
+
+    IDENTIFIER  偏移，並進入狀態 109
+
+
+狀態 92
+
+   53 directive_statement: VERSION_DIRECTIVE DOUBLE_OPERAND PLUS .
+
+    $預設  使用規則 53 以縮減 (directive_statement)
+
+
+狀態 93
+
+   17 function_decl: . function_decl_header LEFT_PAREN $@4 param_entry RIGHT_PAREN $@5 function_ident_param
+   19              | . function_decl_header $@6 function_ident_param
+   20              | . function_decl_header
+   25 function_decl_header: . ENTRY_DIRECTIVE
+   26                     | . FUNC_DIRECTIVE
+   27                     | . VISIBLE_DIRECTIVE FUNC_DIRECTIVE
+   28                     | . EXTERN_DIRECTIVE FUNC_DIRECTIVE
+   44 statement_block: . LEFT_BRACE statement_list RIGHT_BRACE
+   44                | LEFT_BRACE . statement_list RIGHT_BRACE
+   45 statement_list: . directive_statement
+   46               | . instruction_statement
+   47               | . statement_list directive_statement
+   48               | . statement_list instruction_statement
+   49               | . statement_list statement_block
+   50               | . statement_block
+   51 directive_statement: . variable_declaration SEMI_COLON
+   52                    | . VERSION_DIRECTIVE DOUBLE_OPERAND
+   53                    | . VERSION_DIRECTIVE DOUBLE_OPERAND PLUS
+   54                    | . ADDRESS_SIZE_DIRECTIVE INT_OPERAND
+   55                    | . TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER
+   56                    | . TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER
+   57                    | . TARGET_DIRECTIVE IDENTIFIER
+   58                    | . FILE_DIRECTIVE INT_OPERAND STRING
+   59                    | . LOC_DIRECTIVE INT_OPERAND INT_OPERAND INT_OPERAND
+   60                    | . PRAGMA_DIRECTIVE STRING SEMI_COLON
+   61                    | . function_decl SEMI_COLON
+   62                    | . MINNCTAPERSM_DIRECTIVE INT_OPERAND
+   63 variable_declaration: . variable_spec identifier_list
+   64                     | . variable_spec identifier_spec EQUALS initializer_list
+   65                     | . variable_spec identifier_spec EQUALS literal_operand
+   66                     | . CONSTPTR_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA INT_OPERAND
+   67 variable_spec: . var_spec_list
+   74 var_spec_list: . var_spec
+   75              | . var_spec_list var_spec
+   76 var_spec: . space_spec
+   77         | . type_spec
+   78         | . align_spec
+   79         | . EXTERN_DIRECTIVE
+   80 align_spec: . ALIGN_DIRECTIVE INT_OPERAND
+   81 space_spec: . REG_DIRECTIVE
+   82           | . SREG_DIRECTIVE
+   83           | . addressable_spec
+   84 addressable_spec: . CONST_DIRECTIVE
+   85                 | . GLOBAL_DIRECTIVE
+   86                 | . LOCAL_DIRECTIVE
+   87                 | . PARAM_DIRECTIVE
+   88                 | . SHARED_DIRECTIVE
+   89                 | . SURF_DIRECTIVE
+   90                 | . TEX_DIRECTIVE
+   91 type_spec: . scalar_type
+   92          | . vector_spec scalar_type
+   93 vector_spec: . V2_TYPE
+   94            | . V3_TYPE
+   95            | . V4_TYPE
+   96 scalar_type: . S8_TYPE
+   97            | . S16_TYPE
+   98            | . S32_TYPE
+   99            | . S64_TYPE
+  100            | . U8_TYPE
+  101            | . U16_TYPE
+  102            | . U32_TYPE
+  103            | . U64_TYPE
+  104            | . F16_TYPE
+  105            | . F32_TYPE
+  106            | . F64_TYPE
+  107            | . FF64_TYPE
+  108            | . B8_TYPE
+  109            | . B16_TYPE
+  110            | . B32_TYPE
+  111            | . B64_TYPE
+  112            | . BB64_TYPE
+  113            | . BB128_TYPE
+  114            | . PRED_TYPE
+  115            | . TEXREF_TYPE
+  116            | . SAMPLERREF_TYPE
+  117            | . SURFREF_TYPE
+  122 instruction_statement: . instruction SEMI_COLON
+  123                      | . IDENTIFIER COLON
+  124                      | . pred_spec instruction SEMI_COLON
+  126 instruction: . opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 COMMA operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  127            | . opcode_spec operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  128            | . opcode_spec operand COMMA LEFT_PAREN RIGHT_PAREN
+  129            | . opcode_spec operand_list
+  130            | . opcode_spec
+  132 opcode_spec: . OPCODE $@13 option_list
+  133            | . OPCODE
+  134 pred_spec: . PRED IDENTIFIER
+  135          | . PRED EXCLAMATION IDENTIFIER
+  136          | . PRED IDENTIFIER LT_OPTION
+  137          | . PRED IDENTIFIER EQ_OPTION
+  138          | . PRED IDENTIFIER LE_OPTION
+  139          | . PRED IDENTIFIER NE_OPTION
+  140          | . PRED IDENTIFIER GE_OPTION
+  141          | . PRED IDENTIFIER EQU_OPTION
+  142          | . PRED IDENTIFIER GTU_OPTION
+  143          | . PRED IDENTIFIER NEU_OPTION
+  144          | . PRED IDENTIFIER CF_OPTION
+  145          | . PRED IDENTIFIER SF_OPTION
+  146          | . PRED IDENTIFIER NSF_OPTION
+
+    OPCODE                  偏移，並進入狀態 110
+    ALIGN_DIRECTIVE         偏移，並進入狀態 3
+    CONST_DIRECTIVE         偏移，並進入狀態 4
+    CONSTPTR_DIRECTIVE      偏移，並進入狀態 5
+    ENTRY_DIRECTIVE         偏移，並進入狀態 6
+    EXTERN_DIRECTIVE        偏移，並進入狀態 7
+    FILE_DIRECTIVE          偏移，並進入狀態 8
+    FUNC_DIRECTIVE          偏移，並進入狀態 9
+    GLOBAL_DIRECTIVE        偏移，並進入狀態 10
+    LOCAL_DIRECTIVE         偏移，並進入狀態 11
+    LOC_DIRECTIVE           偏移，並進入狀態 12
+    MINNCTAPERSM_DIRECTIVE  偏移，並進入狀態 13
+    PARAM_DIRECTIVE         偏移，並進入狀態 14
+    PRAGMA_DIRECTIVE        偏移，並進入狀態 15
+    REG_DIRECTIVE           偏移，並進入狀態 16
+    SHARED_DIRECTIVE        偏移，並進入狀態 17
+    SREG_DIRECTIVE          偏移，並進入狀態 18
+    SURF_DIRECTIVE          偏移，並進入狀態 19
+    TARGET_DIRECTIVE        偏移，並進入狀態 20
+    TEX_DIRECTIVE           偏移，並進入狀態 21
+    VERSION_DIRECTIVE       偏移，並進入狀態 22
+    ADDRESS_SIZE_DIRECTIVE  偏移，並進入狀態 23
+    VISIBLE_DIRECTIVE       偏移，並進入狀態 24
+    IDENTIFIER              偏移，並進入狀態 111
+    S8_TYPE                 偏移，並進入狀態 25
+    S16_TYPE                偏移，並進入狀態 26
+    S32_TYPE                偏移，並進入狀態 27
+    S64_TYPE                偏移，並進入狀態 28
+    U8_TYPE                 偏移，並進入狀態 29
+    U16_TYPE                偏移，並進入狀態 30
+    U32_TYPE                偏移，並進入狀態 31
+    U64_TYPE                偏移，並進入狀態 32
+    F16_TYPE                偏移，並進入狀態 33
+    F32_TYPE                偏移，並進入狀態 34
+    F64_TYPE                偏移，並進入狀態 35
+    FF64_TYPE               偏移，並進入狀態 36
+    B8_TYPE                 偏移，並進入狀態 37
+    B16_TYPE                偏移，並進入狀態 38
+    B32_TYPE                偏移，並進入狀態 39
+    B64_TYPE                偏移，並進入狀態 40
+    BB64_TYPE               偏移，並進入狀態 41
+    BB128_TYPE              偏移，並進入狀態 42
+    PRED_TYPE               偏移，並進入狀態 43
+    TEXREF_TYPE             偏移，並進入狀態 44
+    SAMPLERREF_TYPE         偏移，並進入狀態 45
+    SURFREF_TYPE            偏移，並進入狀態 46
+    V2_TYPE                 偏移，並進入狀態 47
+    V3_TYPE                 偏移，並進入狀態 48
+    V4_TYPE                 偏移，並進入狀態 49
+    PRED                    偏移，並進入狀態 112
+    LEFT_BRACE              偏移，並進入狀態 93
+
+    function_decl          進入狀態 113
+    function_decl_header   進入狀態 52
+    statement_block        進入狀態 114
+    statement_list         進入狀態 115
+    directive_statement    進入狀態 116
+    variable_declaration   進入狀態 54
+    variable_spec          進入狀態 55
+    var_spec_list          進入狀態 56
+    var_spec               進入狀態 57
+    align_spec             進入狀態 58
+    space_spec             進入狀態 59
+    addressable_spec       進入狀態 60
+    type_spec              進入狀態 61
+    vector_spec            進入狀態 62
+    scalar_type            進入狀態 63
+    instruction_statement  進入狀態 117
+    instruction            進入狀態 118
+    opcode_spec            進入狀態 119
+    pred_spec              進入狀態 120
+
+
+狀態 94
+
+    6 function_defn: function_decl $@1 statement_block .
+
+    $預設  使用規則 6 以縮減 (function_defn)
+
+
+狀態 95
+
+   12 block_spec: MAXNCTAPERSM_DIRECTIVE . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 121
+
+
+狀態 96
+
+   10 block_spec: MAXNTID_DIRECTIVE . INT_OPERAND COMMA INT_OPERAND COMMA INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 122
+
+
+狀態 97
+
+   11 block_spec: MINNCTAPERSM_DIRECTIVE . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 123
+
+
+狀態 98
+
+   13 block_spec_list: block_spec .
+
+    $預設  使用規則 13 以縮減 (block_spec_list)
+
+
+狀態 99
+
+    8 $@3: . %empty  [LEFT_BRACE]
+    9 function_defn: function_decl $@2 block_spec_list . $@3 statement_block
+   10 block_spec: . MAXNTID_DIRECTIVE INT_OPERAND COMMA INT_OPERAND COMMA INT_OPERAND
+   11           | . MINNCTAPERSM_DIRECTIVE INT_OPERAND
+   12           | . MAXNCTAPERSM_DIRECTIVE INT_OPERAND
+   14 block_spec_list: block_spec_list . block_spec
+
+    MAXNCTAPERSM_DIRECTIVE  偏移，並進入狀態 95
+    MAXNTID_DIRECTIVE       偏移，並進入狀態 96
+    MINNCTAPERSM_DIRECTIVE  偏移，並進入狀態 97
+
+    $預設  使用規則 8 以縮減 ($@3)
+
+    $@3         進入狀態 124
+    block_spec  進入狀態 125
+
+
+狀態 100
+
+   17 function_decl: function_decl_header LEFT_PAREN $@4 . param_entry RIGHT_PAREN $@5 function_ident_param
+   34 param_entry: . PARAM_DIRECTIVE $@10 variable_spec ptr_spec identifier_spec
+   36            | . REG_DIRECTIVE $@11 variable_spec identifier_spec
+
+    PARAM_DIRECTIVE  偏移，並進入狀態 126
+    REG_DIRECTIVE    偏移，並進入狀態 127
+
+    param_entry  進入狀態 128
+
+
+狀態 101
+
+   21 $@7: . %empty  [LEFT_PAREN]
+   23 function_ident_param: IDENTIFIER . $@7 LEFT_PAREN $@8 param_list RIGHT_PAREN
+   24                     | IDENTIFIER .  [$end, ALIGN_DIRECTIVE, CONST_DIRECTIVE, CONSTPTR_DIRECTIVE, ENTRY_DIRECTIVE, EXTERN_DIRECTIVE, FILE_DIRECTIVE, FUNC_DIRECTIVE, GLOBAL_DIRECTIVE, LOCAL_DIRECTIVE, LOC_DIRECTIVE, MAXNCTAPERSM_DIRECTIVE, MAXNTID_DIRECTIVE, MINNCTAPERSM_DIRECTIVE, PARAM_DIRECTIVE, PRAGMA_DIRECTIVE, REG_DIRECTIVE, SHARED_DIRECTIVE, SREG_DIRECTIVE, SURF_DIRECTIVE, TARGET_DIRECTIVE, TEX_DIRECTIVE, VERSION_DIRECTIVE, ADDRESS_SIZE_DIRECTIVE, VISIBLE_DIRECTIVE, S8_TYPE, S16_TYPE, S32_TYPE, S64_TYPE, U8_TYPE, U16_TYPE, U32_TYPE, U64_TYPE, F16_TYPE, F32_TYPE, F64_TYPE, FF64_TYPE, B8_TYPE, B16_TYPE, B32_TYPE, B64_TYPE, BB64_TYPE, BB128_TYPE, PRED_TYPE, TEXREF_TYPE, SAMPLERREF_TYPE, SURFREF_TYPE, V2_TYPE, V3_TYPE, V4_TYPE, SEMI_COLON, LEFT_BRACE]
+
+    LEFT_PAREN  使用規則 21 以縮減 ($@7)
+    $預設     使用規則 24 以縮減 (function_ident_param)
+
+    $@7  進入狀態 129
+
+
+狀態 102
+
+   19 function_decl: function_decl_header $@6 function_ident_param .
+
+    $預設  使用規則 19 以縮減 (function_decl)
+
+
+狀態 103
+
+   72 identifier_spec: IDENTIFIER LEFT_SQUARE_BRACKET . RIGHT_SQUARE_BRACKET
+   73                | IDENTIFIER LEFT_SQUARE_BRACKET . INT_OPERAND RIGHT_SQUARE_BRACKET
+
+    INT_OPERAND           偏移，並進入狀態 130
+    RIGHT_SQUARE_BRACKET  偏移，並進入狀態 131
+
+
+狀態 104
+
+   71 identifier_spec: IDENTIFIER LEFT_ANGLE_BRACKET . INT_OPERAND RIGHT_ANGLE_BRACKET
+
+    INT_OPERAND  偏移，並進入狀態 132
+
+
+狀態 105
+
+   69 identifier_list: identifier_list COMMA . identifier_spec
+   70 identifier_spec: . IDENTIFIER
+   71                | . IDENTIFIER LEFT_ANGLE_BRACKET INT_OPERAND RIGHT_ANGLE_BRACKET
+   72                | . IDENTIFIER LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+   73                | . IDENTIFIER LEFT_SQUARE_BRACKET INT_OPERAND RIGHT_SQUARE_BRACKET
+
+    IDENTIFIER  偏移，並進入狀態 81
+
+    identifier_spec  進入狀態 133
+
+
+狀態 106
+
+   64 variable_declaration: variable_spec identifier_spec EQUALS . initializer_list
+   65                     | variable_spec identifier_spec EQUALS . literal_operand
+  118 initializer_list: . LEFT_BRACE literal_list RIGHT_BRACE
+  119                 | . LEFT_BRACE initializer_list RIGHT_BRACE
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+
+    INT_OPERAND     偏移，並進入狀態 134
+    FLOAT_OPERAND   偏移，並進入狀態 135
+    DOUBLE_OPERAND  偏移，並進入狀態 136
+    LEFT_BRACE      偏移，並進入狀態 137
+
+    initializer_list  進入狀態 138
+    literal_operand   進入狀態 139
+
+
+狀態 107
+
+   66 variable_declaration: CONSTPTR_DIRECTIVE IDENTIFIER COMMA IDENTIFIER . COMMA INT_OPERAND
+
+    COMMA  偏移，並進入狀態 140
+
+
+狀態 108
+
+   59 directive_statement: LOC_DIRECTIVE INT_OPERAND INT_OPERAND INT_OPERAND .
+
+    $預設  使用規則 59 以縮減 (directive_statement)
+
+
+狀態 109
+
+   55 directive_statement: TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER .  [$end, OPCODE, ALIGN_DIRECTIVE, CONST_DIRECTIVE, CONSTPTR_DIRECTIVE, ENTRY_DIRECTIVE, EXTERN_DIRECTIVE, FILE_DIRECTIVE, FUNC_DIRECTIVE, GLOBAL_DIRECTIVE, LOCAL_DIRECTIVE, LOC_DIRECTIVE, MINNCTAPERSM_DIRECTIVE, PARAM_DIRECTIVE, PRAGMA_DIRECTIVE, REG_DIRECTIVE, SHARED_DIRECTIVE, SREG_DIRECTIVE, SURF_DIRECTIVE, TARGET_DIRECTIVE, TEX_DIRECTIVE, VERSION_DIRECTIVE, ADDRESS_SIZE_DIRECTIVE, VISIBLE_DIRECTIVE, IDENTIFIER, S8_TYPE, S16_TYPE, S32_TYPE, S64_TYPE, U8_TYPE, U16_TYPE, U32_TYPE, U64_TYPE, F16_TYPE, F32_TYPE, F64_TYPE, FF64_TYPE, B8_TYPE, B16_TYPE, B32_TYPE, B64_TYPE, BB64_TYPE, BB128_TYPE, PRED_TYPE, TEXREF_TYPE, SAMPLERREF_TYPE, SURFREF_TYPE, V2_TYPE, V3_TYPE, V4_TYPE, PRED, RIGHT_BRACE, LEFT_BRACE]
+   56                    | TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER . COMMA IDENTIFIER
+
+    COMMA  偏移，並進入狀態 141
+
+    $預設  使用規則 55 以縮減 (directive_statement)
+
+
+狀態 110
+
+  131 $@13: . %empty  [CONST_DIRECTIVE, GLOBAL_DIRECTIVE, LOCAL_DIRECTIVE, PARAM_DIRECTIVE, SHARED_DIRECTIVE, SURF_DIRECTIVE, TEX_DIRECTIVE, S8_TYPE, S16_TYPE, S32_TYPE, S64_TYPE, U8_TYPE, U16_TYPE, U32_TYPE, U64_TYPE, F16_TYPE, F32_TYPE, F64_TYPE, FF64_TYPE, B8_TYPE, B16_TYPE, B32_TYPE, B64_TYPE, BB64_TYPE, BB128_TYPE, PRED_TYPE, TEXREF_TYPE, SAMPLERREF_TYPE, SURFREF_TYPE, V2_TYPE, V3_TYPE, V4_TYPE, HALF_OPTION, EQ_OPTION, NE_OPTION, LT_OPTION, LE_OPTION, GT_OPTION, GE_OPTION, LO_OPTION, LS_OPTION, HI_OPTION, HS_OPTION, EQU_OPTION, NEU_OPTION, LTU_OPTION, LEU_OPTION, GTU_OPTION, GEU_OPTION, NUM_OPTION, NAN_OPTION, WIDE_OPTION, RN_OPTION, RZ_OPTION, RM_OPTION, RP_OPTION, RNI_OPTION, RZI_OPTION, RMI_OPTION, RPI_OPTION, UNI_OPTION, GEOM_MODIFIER_1D, GEOM_MODIFIER_2D, GEOM_MODIFIER_3D, SAT_OPTION, FTZ_OPTION, NEG_OPTION, ATOMIC_AND, ATOMIC_OR, ATOMIC_XOR, ATOMIC_CAS, ATOMIC_EXCH, ATOMIC_ADD, ATOMIC_INC, ATOMIC_DEC, ATOMIC_MIN, ATOMIC_MAX, APPROX_OPTION, FULL_OPTION, ANY_OPTION, ALL_OPTION, BALLOT_OPTION, GLOBAL_OPTION, CTA_OPTION, SYS_OPTION, EXIT_OPTION, ABS_OPTION, TO_OPTION, CA_OPTION, CG_OPTION, CS_OPTION, LU_OPTION, CV_OPTION, WB_OPTION, WT_OPTION]
+  132 opcode_spec: OPCODE . $@13 option_list
+  133            | OPCODE .  [IDENTIFIER, INT_OPERAND, FLOAT_OPERAND, DOUBLE_OPERAND, LEFT_SQUARE_BRACKET, SPECIAL_REGISTER, MINUS, SEMI_COLON, EXCLAMATION, LEFT_BRACE, LEFT_PAREN]
+
+    IDENTIFIER           使用規則 133 以縮減 (opcode_spec)
+    INT_OPERAND          使用規則 133 以縮減 (opcode_spec)
+    FLOAT_OPERAND        使用規則 133 以縮減 (opcode_spec)
+    DOUBLE_OPERAND       使用規則 133 以縮減 (opcode_spec)
+    LEFT_SQUARE_BRACKET  使用規則 133 以縮減 (opcode_spec)
+    SPECIAL_REGISTER     使用規則 133 以縮減 (opcode_spec)
+    MINUS                使用規則 133 以縮減 (opcode_spec)
+    SEMI_COLON           使用規則 133 以縮減 (opcode_spec)
+    EXCLAMATION          使用規則 133 以縮減 (opcode_spec)
+    LEFT_BRACE           使用規則 133 以縮減 (opcode_spec)
+    LEFT_PAREN           使用規則 133 以縮減 (opcode_spec)
+    $預設              使用規則 131 以縮減 ($@13)
+
+    $@13  進入狀態 142
+
+
+狀態 111
+
+  123 instruction_statement: IDENTIFIER . COLON
+
+    COLON  偏移，並進入狀態 143
+
+
+狀態 112
+
+  134 pred_spec: PRED . IDENTIFIER
+  135          | PRED . EXCLAMATION IDENTIFIER
+  136          | PRED . IDENTIFIER LT_OPTION
+  137          | PRED . IDENTIFIER EQ_OPTION
+  138          | PRED . IDENTIFIER LE_OPTION
+  139          | PRED . IDENTIFIER NE_OPTION
+  140          | PRED . IDENTIFIER GE_OPTION
+  141          | PRED . IDENTIFIER EQU_OPTION
+  142          | PRED . IDENTIFIER GTU_OPTION
+  143          | PRED . IDENTIFIER NEU_OPTION
+  144          | PRED . IDENTIFIER CF_OPTION
+  145          | PRED . IDENTIFIER SF_OPTION
+  146          | PRED . IDENTIFIER NSF_OPTION
+
+    IDENTIFIER   偏移，並進入狀態 144
+    EXCLAMATION  偏移，並進入狀態 145
+
+
+狀態 113
+
+   61 directive_statement: function_decl . SEMI_COLON
+
+    SEMI_COLON  偏移，並進入狀態 75
+
+
+狀態 114
+
+   50 statement_list: statement_block .
+
+    $預設  使用規則 50 以縮減 (statement_list)
+
+
+狀態 115
+
+   17 function_decl: . function_decl_header LEFT_PAREN $@4 param_entry RIGHT_PAREN $@5 function_ident_param
+   19              | . function_decl_header $@6 function_ident_param
+   20              | . function_decl_header
+   25 function_decl_header: . ENTRY_DIRECTIVE
+   26                     | . FUNC_DIRECTIVE
+   27                     | . VISIBLE_DIRECTIVE FUNC_DIRECTIVE
+   28                     | . EXTERN_DIRECTIVE FUNC_DIRECTIVE
+   44 statement_block: . LEFT_BRACE statement_list RIGHT_BRACE
+   44                | LEFT_BRACE statement_list . RIGHT_BRACE
+   47 statement_list: statement_list . directive_statement
+   48               | statement_list . instruction_statement
+   49               | statement_list . statement_block
+   51 directive_statement: . variable_declaration SEMI_COLON
+   52                    | . VERSION_DIRECTIVE DOUBLE_OPERAND
+   53                    | . VERSION_DIRECTIVE DOUBLE_OPERAND PLUS
+   54                    | . ADDRESS_SIZE_DIRECTIVE INT_OPERAND
+   55                    | . TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER
+   56                    | . TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER
+   57                    | . TARGET_DIRECTIVE IDENTIFIER
+   58                    | . FILE_DIRECTIVE INT_OPERAND STRING
+   59                    | . LOC_DIRECTIVE INT_OPERAND INT_OPERAND INT_OPERAND
+   60                    | . PRAGMA_DIRECTIVE STRING SEMI_COLON
+   61                    | . function_decl SEMI_COLON
+   62                    | . MINNCTAPERSM_DIRECTIVE INT_OPERAND
+   63 variable_declaration: . variable_spec identifier_list
+   64                     | . variable_spec identifier_spec EQUALS initializer_list
+   65                     | . variable_spec identifier_spec EQUALS literal_operand
+   66                     | . CONSTPTR_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA INT_OPERAND
+   67 variable_spec: . var_spec_list
+   74 var_spec_list: . var_spec
+   75              | . var_spec_list var_spec
+   76 var_spec: . space_spec
+   77         | . type_spec
+   78         | . align_spec
+   79         | . EXTERN_DIRECTIVE
+   80 align_spec: . ALIGN_DIRECTIVE INT_OPERAND
+   81 space_spec: . REG_DIRECTIVE
+   82           | . SREG_DIRECTIVE
+   83           | . addressable_spec
+   84 addressable_spec: . CONST_DIRECTIVE
+   85                 | . GLOBAL_DIRECTIVE
+   86                 | . LOCAL_DIRECTIVE
+   87                 | . PARAM_DIRECTIVE
+   88                 | . SHARED_DIRECTIVE
+   89                 | . SURF_DIRECTIVE
+   90                 | . TEX_DIRECTIVE
+   91 type_spec: . scalar_type
+   92          | . vector_spec scalar_type
+   93 vector_spec: . V2_TYPE
+   94            | . V3_TYPE
+   95            | . V4_TYPE
+   96 scalar_type: . S8_TYPE
+   97            | . S16_TYPE
+   98            | . S32_TYPE
+   99            | . S64_TYPE
+  100            | . U8_TYPE
+  101            | . U16_TYPE
+  102            | . U32_TYPE
+  103            | . U64_TYPE
+  104            | . F16_TYPE
+  105            | . F32_TYPE
+  106            | . F64_TYPE
+  107            | . FF64_TYPE
+  108            | . B8_TYPE
+  109            | . B16_TYPE
+  110            | . B32_TYPE
+  111            | . B64_TYPE
+  112            | . BB64_TYPE
+  113            | . BB128_TYPE
+  114            | . PRED_TYPE
+  115            | . TEXREF_TYPE
+  116            | . SAMPLERREF_TYPE
+  117            | . SURFREF_TYPE
+  122 instruction_statement: . instruction SEMI_COLON
+  123                      | . IDENTIFIER COLON
+  124                      | . pred_spec instruction SEMI_COLON
+  126 instruction: . opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 COMMA operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  127            | . opcode_spec operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  128            | . opcode_spec operand COMMA LEFT_PAREN RIGHT_PAREN
+  129            | . opcode_spec operand_list
+  130            | . opcode_spec
+  132 opcode_spec: . OPCODE $@13 option_list
+  133            | . OPCODE
+  134 pred_spec: . PRED IDENTIFIER
+  135          | . PRED EXCLAMATION IDENTIFIER
+  136          | . PRED IDENTIFIER LT_OPTION
+  137          | . PRED IDENTIFIER EQ_OPTION
+  138          | . PRED IDENTIFIER LE_OPTION
+  139          | . PRED IDENTIFIER NE_OPTION
+  140          | . PRED IDENTIFIER GE_OPTION
+  141          | . PRED IDENTIFIER EQU_OPTION
+  142          | . PRED IDENTIFIER GTU_OPTION
+  143          | . PRED IDENTIFIER NEU_OPTION
+  144          | . PRED IDENTIFIER CF_OPTION
+  145          | . PRED IDENTIFIER SF_OPTION
+  146          | . PRED IDENTIFIER NSF_OPTION
+
+    OPCODE                  偏移，並進入狀態 110
+    ALIGN_DIRECTIVE         偏移，並進入狀態 3
+    CONST_DIRECTIVE         偏移，並進入狀態 4
+    CONSTPTR_DIRECTIVE      偏移，並進入狀態 5
+    ENTRY_DIRECTIVE         偏移，並進入狀態 6
+    EXTERN_DIRECTIVE        偏移，並進入狀態 7
+    FILE_DIRECTIVE          偏移，並進入狀態 8
+    FUNC_DIRECTIVE          偏移，並進入狀態 9
+    GLOBAL_DIRECTIVE        偏移，並進入狀態 10
+    LOCAL_DIRECTIVE         偏移，並進入狀態 11
+    LOC_DIRECTIVE           偏移，並進入狀態 12
+    MINNCTAPERSM_DIRECTIVE  偏移，並進入狀態 13
+    PARAM_DIRECTIVE         偏移，並進入狀態 14
+    PRAGMA_DIRECTIVE        偏移，並進入狀態 15
+    REG_DIRECTIVE           偏移，並進入狀態 16
+    SHARED_DIRECTIVE        偏移，並進入狀態 17
+    SREG_DIRECTIVE          偏移，並進入狀態 18
+    SURF_DIRECTIVE          偏移，並進入狀態 19
+    TARGET_DIRECTIVE        偏移，並進入狀態 20
+    TEX_DIRECTIVE           偏移，並進入狀態 21
+    VERSION_DIRECTIVE       偏移，並進入狀態 22
+    ADDRESS_SIZE_DIRECTIVE  偏移，並進入狀態 23
+    VISIBLE_DIRECTIVE       偏移，並進入狀態 24
+    IDENTIFIER              偏移，並進入狀態 111
+    S8_TYPE                 偏移，並進入狀態 25
+    S16_TYPE                偏移，並進入狀態 26
+    S32_TYPE                偏移，並進入狀態 27
+    S64_TYPE                偏移，並進入狀態 28
+    U8_TYPE                 偏移，並進入狀態 29
+    U16_TYPE                偏移，並進入狀態 30
+    U32_TYPE                偏移，並進入狀態 31
+    U64_TYPE                偏移，並進入狀態 32
+    F16_TYPE                偏移，並進入狀態 33
+    F32_TYPE                偏移，並進入狀態 34
+    F64_TYPE                偏移，並進入狀態 35
+    FF64_TYPE               偏移，並進入狀態 36
+    B8_TYPE                 偏移，並進入狀態 37
+    B16_TYPE                偏移，並進入狀態 38
+    B32_TYPE                偏移，並進入狀態 39
+    B64_TYPE                偏移，並進入狀態 40
+    BB64_TYPE               偏移，並進入狀態 41
+    BB128_TYPE              偏移，並進入狀態 42
+    PRED_TYPE               偏移，並進入狀態 43
+    TEXREF_TYPE             偏移，並進入狀態 44
+    SAMPLERREF_TYPE         偏移，並進入狀態 45
+    SURFREF_TYPE            偏移，並進入狀態 46
+    V2_TYPE                 偏移，並進入狀態 47
+    V3_TYPE                 偏移，並進入狀態 48
+    V4_TYPE                 偏移，並進入狀態 49
+    PRED                    偏移，並進入狀態 112
+    RIGHT_BRACE             偏移，並進入狀態 146
+    LEFT_BRACE              偏移，並進入狀態 93
+
+    function_decl          進入狀態 113
+    function_decl_header   進入狀態 52
+    statement_block        進入狀態 147
+    directive_statement    進入狀態 148
+    variable_declaration   進入狀態 54
+    variable_spec          進入狀態 55
+    var_spec_list          進入狀態 56
+    var_spec               進入狀態 57
+    align_spec             進入狀態 58
+    space_spec             進入狀態 59
+    addressable_spec       進入狀態 60
+    type_spec              進入狀態 61
+    vector_spec            進入狀態 62
+    scalar_type            進入狀態 63
+    instruction_statement  進入狀態 149
+    instruction            進入狀態 118
+    opcode_spec            進入狀態 119
+    pred_spec              進入狀態 120
+
+
+狀態 116
+
+   45 statement_list: directive_statement .
+
+    $預設  使用規則 45 以縮減 (statement_list)
+
+
+狀態 117
+
+   46 statement_list: instruction_statement .
+
+    $預設  使用規則 46 以縮減 (statement_list)
+
+
+狀態 118
+
+  122 instruction_statement: instruction . SEMI_COLON
+
+    SEMI_COLON  偏移，並進入狀態 150
+
+
+狀態 119
+
+  126 instruction: opcode_spec . LEFT_PAREN operand RIGHT_PAREN $@12 COMMA operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  127            | opcode_spec . operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  128            | opcode_spec . operand COMMA LEFT_PAREN RIGHT_PAREN
+  129            | opcode_spec . operand_list
+  130            | opcode_spec .  [SEMI_COLON]
+  219 operand_list: . operand
+  220             | . operand COMMA operand_list
+  221 operand: . IDENTIFIER
+  222        | . EXCLAMATION IDENTIFIER
+  223        | . MINUS IDENTIFIER
+  224        | . memory_operand
+  225        | . literal_operand
+  226        | . builtin_operand
+  227        | . vector_operand
+  228        | . MINUS vector_operand
+  229        | . tex_operand
+  230        | . IDENTIFIER PLUS INT_OPERAND
+  231        | . IDENTIFIER LO_OPTION
+  232        | . MINUS IDENTIFIER LO_OPTION
+  233        | . IDENTIFIER HI_OPTION
+  234        | . MINUS IDENTIFIER HI_OPTION
+  235        | . IDENTIFIER PIPE IDENTIFIER
+  236        | . IDENTIFIER PIPE IDENTIFIER LO_OPTION
+  237        | . IDENTIFIER PIPE IDENTIFIER HI_OPTION
+  238        | . IDENTIFIER BACKSLASH IDENTIFIER
+  239        | . IDENTIFIER BACKSLASH IDENTIFIER LO_OPTION
+  240        | . IDENTIFIER BACKSLASH IDENTIFIER HI_OPTION
+  241 vector_operand: . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | . LEFT_BRACE IDENTIFIER RIGHT_BRACE
+  246 tex_operand: . LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET
+  247 builtin_operand: . SPECIAL_REGISTER DIMENSION_MODIFIER
+  248                | . SPECIAL_REGISTER
+  249 memory_operand: . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  250               | . IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | . IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | . IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+  253               | . MINUS memory_operand
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+
+    IDENTIFIER           偏移，並進入狀態 151
+    INT_OPERAND          偏移，並進入狀態 134
+    FLOAT_OPERAND        偏移，並進入狀態 135
+    DOUBLE_OPERAND       偏移，並進入狀態 136
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 152
+    SPECIAL_REGISTER     偏移，並進入狀態 153
+    MINUS                偏移，並進入狀態 154
+    EXCLAMATION          偏移，並進入狀態 155
+    LEFT_BRACE           偏移，並進入狀態 156
+    LEFT_PAREN           偏移，並進入狀態 157
+
+    $預設  使用規則 130 以縮減 (instruction)
+
+    operand_list     進入狀態 158
+    operand          進入狀態 159
+    vector_operand   進入狀態 160
+    tex_operand      進入狀態 161
+    builtin_operand  進入狀態 162
+    memory_operand   進入狀態 163
+    literal_operand  進入狀態 164
+
+
+狀態 120
+
+  124 instruction_statement: pred_spec . instruction SEMI_COLON
+  126 instruction: . opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 COMMA operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  127            | . opcode_spec operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  128            | . opcode_spec operand COMMA LEFT_PAREN RIGHT_PAREN
+  129            | . opcode_spec operand_list
+  130            | . opcode_spec
+  132 opcode_spec: . OPCODE $@13 option_list
+  133            | . OPCODE
+
+    OPCODE  偏移，並進入狀態 110
+
+    instruction  進入狀態 165
+    opcode_spec  進入狀態 119
+
+
+狀態 121
+
+   12 block_spec: MAXNCTAPERSM_DIRECTIVE INT_OPERAND .
+
+    $預設  使用規則 12 以縮減 (block_spec)
+
+
+狀態 122
+
+   10 block_spec: MAXNTID_DIRECTIVE INT_OPERAND . COMMA INT_OPERAND COMMA INT_OPERAND
+
+    COMMA  偏移，並進入狀態 166
+
+
+狀態 123
+
+   11 block_spec: MINNCTAPERSM_DIRECTIVE INT_OPERAND .
+
+    $預設  使用規則 11 以縮減 (block_spec)
+
+
+狀態 124
+
+    9 function_defn: function_decl $@2 block_spec_list $@3 . statement_block
+   44 statement_block: . LEFT_BRACE statement_list RIGHT_BRACE
+
+    LEFT_BRACE  偏移，並進入狀態 93
+
+    statement_block  進入狀態 167
+
+
+狀態 125
+
+   14 block_spec_list: block_spec_list block_spec .
+
+    $預設  使用規則 14 以縮減 (block_spec_list)
+
+
+狀態 126
+
+   33 $@10: . %empty
+   34 param_entry: PARAM_DIRECTIVE . $@10 variable_spec ptr_spec identifier_spec
+
+    $預設  使用規則 33 以縮減 ($@10)
+
+    $@10  進入狀態 168
+
+
+狀態 127
+
+   35 $@11: . %empty
+   36 param_entry: REG_DIRECTIVE . $@11 variable_spec identifier_spec
+
+    $預設  使用規則 35 以縮減 ($@11)
+
+    $@11  進入狀態 169
+
+
+狀態 128
+
+   17 function_decl: function_decl_header LEFT_PAREN $@4 param_entry . RIGHT_PAREN $@5 function_ident_param
+
+    RIGHT_PAREN  偏移，並進入狀態 170
+
+
+狀態 129
+
+   23 function_ident_param: IDENTIFIER $@7 . LEFT_PAREN $@8 param_list RIGHT_PAREN
+
+    LEFT_PAREN  偏移，並進入狀態 171
+
+
+狀態 130
+
+   73 identifier_spec: IDENTIFIER LEFT_SQUARE_BRACKET INT_OPERAND . RIGHT_SQUARE_BRACKET
+
+    RIGHT_SQUARE_BRACKET  偏移，並進入狀態 172
+
+
+狀態 131
+
+   72 identifier_spec: IDENTIFIER LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET .
+
+    $預設  使用規則 72 以縮減 (identifier_spec)
+
+
+狀態 132
+
+   71 identifier_spec: IDENTIFIER LEFT_ANGLE_BRACKET INT_OPERAND . RIGHT_ANGLE_BRACKET
+
+    RIGHT_ANGLE_BRACKET  偏移，並進入狀態 173
+
+
+狀態 133
+
+   69 identifier_list: identifier_list COMMA identifier_spec .
+
+    $預設  使用規則 69 以縮減 (identifier_list)
+
+
+狀態 134
+
+  261 literal_operand: INT_OPERAND .
+
+    $預設  使用規則 261 以縮減 (literal_operand)
+
+
+狀態 135
+
+  262 literal_operand: FLOAT_OPERAND .
+
+    $預設  使用規則 262 以縮減 (literal_operand)
+
+
+狀態 136
+
+  263 literal_operand: DOUBLE_OPERAND .
+
+    $預設  使用規則 263 以縮減 (literal_operand)
+
+
+狀態 137
+
+  118 initializer_list: . LEFT_BRACE literal_list RIGHT_BRACE
+  118                 | LEFT_BRACE . literal_list RIGHT_BRACE
+  119                 | . LEFT_BRACE initializer_list RIGHT_BRACE
+  119                 | LEFT_BRACE . initializer_list RIGHT_BRACE
+  120 literal_list: . literal_operand
+  121             | . literal_list COMMA literal_operand
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+
+    INT_OPERAND     偏移，並進入狀態 134
+    FLOAT_OPERAND   偏移，並進入狀態 135
+    DOUBLE_OPERAND  偏移，並進入狀態 136
+    LEFT_BRACE      偏移，並進入狀態 137
+
+    initializer_list  進入狀態 174
+    literal_list      進入狀態 175
+    literal_operand   進入狀態 176
+
+
+狀態 138
+
+   64 variable_declaration: variable_spec identifier_spec EQUALS initializer_list .
+
+    $預設  使用規則 64 以縮減 (variable_declaration)
+
+
+狀態 139
+
+   65 variable_declaration: variable_spec identifier_spec EQUALS literal_operand .
+
+    $預設  使用規則 65 以縮減 (variable_declaration)
+
+
+狀態 140
+
+   66 variable_declaration: CONSTPTR_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 177
+
+
+狀態 141
+
+   56 directive_statement: TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA . IDENTIFIER
+
+    IDENTIFIER  偏移，並進入狀態 178
+
+
+狀態 142
+
+   84 addressable_spec: . CONST_DIRECTIVE
+   85                 | . GLOBAL_DIRECTIVE
+   86                 | . LOCAL_DIRECTIVE
+   87                 | . PARAM_DIRECTIVE
+   88                 | . SHARED_DIRECTIVE
+   89                 | . SURF_DIRECTIVE
+   90                 | . TEX_DIRECTIVE
+   91 type_spec: . scalar_type
+   92          | . vector_spec scalar_type
+   93 vector_spec: . V2_TYPE
+   94            | . V3_TYPE
+   95            | . V4_TYPE
+   96 scalar_type: . S8_TYPE
+   97            | . S16_TYPE
+   98            | . S32_TYPE
+   99            | . S64_TYPE
+  100            | . U8_TYPE
+  101            | . U16_TYPE
+  102            | . U32_TYPE
+  103            | . U64_TYPE
+  104            | . F16_TYPE
+  105            | . F32_TYPE
+  106            | . F64_TYPE
+  107            | . FF64_TYPE
+  108            | . B8_TYPE
+  109            | . B16_TYPE
+  110            | . B32_TYPE
+  111            | . B64_TYPE
+  112            | . BB64_TYPE
+  113            | . BB128_TYPE
+  114            | . PRED_TYPE
+  115            | . TEXREF_TYPE
+  116            | . SAMPLERREF_TYPE
+  117            | . SURFREF_TYPE
+  132 opcode_spec: OPCODE $@13 . option_list
+  147 option_list: . option
+  148            | . option option_list
+  149 option: . type_spec
+  150       | . compare_spec
+  151       | . addressable_spec
+  152       | . rounding_mode
+  153       | . UNI_OPTION
+  154       | . WIDE_OPTION
+  155       | . ANY_OPTION
+  156       | . ALL_OPTION
+  157       | . BALLOT_OPTION
+  158       | . GLOBAL_OPTION
+  159       | . CTA_OPTION
+  160       | . SYS_OPTION
+  161       | . GEOM_MODIFIER_1D
+  162       | . GEOM_MODIFIER_2D
+  163       | . GEOM_MODIFIER_3D
+  164       | . SAT_OPTION
+  165       | . FTZ_OPTION
+  166       | . NEG_OPTION
+  167       | . APPROX_OPTION
+  168       | . FULL_OPTION
+  169       | . EXIT_OPTION
+  170       | . ABS_OPTION
+  171       | . atomic_operation_spec
+  172       | . TO_OPTION
+  173       | . HALF_OPTION
+  174       | . CA_OPTION
+  175       | . CG_OPTION
+  176       | . CS_OPTION
+  177       | . LU_OPTION
+  178       | . CV_OPTION
+  179       | . WB_OPTION
+  180       | . WT_OPTION
+  181 atomic_operation_spec: . ATOMIC_AND
+  182                      | . ATOMIC_OR
+  183                      | . ATOMIC_XOR
+  184                      | . ATOMIC_CAS
+  185                      | . ATOMIC_EXCH
+  186                      | . ATOMIC_ADD
+  187                      | . ATOMIC_INC
+  188                      | . ATOMIC_DEC
+  189                      | . ATOMIC_MIN
+  190                      | . ATOMIC_MAX
+  191 rounding_mode: . floating_point_rounding_mode
+  192              | . integer_rounding_mode
+  193 floating_point_rounding_mode: . RN_OPTION
+  194                             | . RZ_OPTION
+  195                             | . RM_OPTION
+  196                             | . RP_OPTION
+  197 integer_rounding_mode: . RNI_OPTION
+  198                      | . RZI_OPTION
+  199                      | . RMI_OPTION
+  200                      | . RPI_OPTION
+  201 compare_spec: . EQ_OPTION
+  202             | . NE_OPTION
+  203             | . LT_OPTION
+  204             | . LE_OPTION
+  205             | . GT_OPTION
+  206             | . GE_OPTION
+  207             | . LO_OPTION
+  208             | . LS_OPTION
+  209             | . HI_OPTION
+  210             | . HS_OPTION
+  211             | . EQU_OPTION
+  212             | . NEU_OPTION
+  213             | . LTU_OPTION
+  214             | . LEU_OPTION
+  215             | . GTU_OPTION
+  216             | . GEU_OPTION
+  217             | . NUM_OPTION
+  218             | . NAN_OPTION
+
+    CONST_DIRECTIVE   偏移，並進入狀態 4
+    GLOBAL_DIRECTIVE  偏移，並進入狀態 10
+    LOCAL_DIRECTIVE   偏移，並進入狀態 11
+    PARAM_DIRECTIVE   偏移，並進入狀態 14
+    SHARED_DIRECTIVE  偏移，並進入狀態 17
+    SURF_DIRECTIVE    偏移，並進入狀態 19
+    TEX_DIRECTIVE     偏移，並進入狀態 21
+    S8_TYPE           偏移，並進入狀態 25
+    S16_TYPE          偏移，並進入狀態 26
+    S32_TYPE          偏移，並進入狀態 27
+    S64_TYPE          偏移，並進入狀態 28
+    U8_TYPE           偏移，並進入狀態 29
+    U16_TYPE          偏移，並進入狀態 30
+    U32_TYPE          偏移，並進入狀態 31
+    U64_TYPE          偏移，並進入狀態 32
+    F16_TYPE          偏移，並進入狀態 33
+    F32_TYPE          偏移，並進入狀態 34
+    F64_TYPE          偏移，並進入狀態 35
+    FF64_TYPE         偏移，並進入狀態 36
+    B8_TYPE           偏移，並進入狀態 37
+    B16_TYPE          偏移，並進入狀態 38
+    B32_TYPE          偏移，並進入狀態 39
+    B64_TYPE          偏移，並進入狀態 40
+    BB64_TYPE         偏移，並進入狀態 41
+    BB128_TYPE        偏移，並進入狀態 42
+    PRED_TYPE         偏移，並進入狀態 43
+    TEXREF_TYPE       偏移，並進入狀態 44
+    SAMPLERREF_TYPE   偏移，並進入狀態 45
+    SURFREF_TYPE      偏移，並進入狀態 46
+    V2_TYPE           偏移，並進入狀態 47
+    V3_TYPE           偏移，並進入狀態 48
+    V4_TYPE           偏移，並進入狀態 49
+    HALF_OPTION       偏移，並進入狀態 179
+    EQ_OPTION         偏移，並進入狀態 180
+    NE_OPTION         偏移，並進入狀態 181
+    LT_OPTION         偏移，並進入狀態 182
+    LE_OPTION         偏移，並進入狀態 183
+    GT_OPTION         偏移，並進入狀態 184
+    GE_OPTION         偏移，並進入狀態 185
+    LO_OPTION         偏移，並進入狀態 186
+    LS_OPTION         偏移，並進入狀態 187
+    HI_OPTION         偏移，並進入狀態 188
+    HS_OPTION         偏移，並進入狀態 189
+    EQU_OPTION        偏移，並進入狀態 190
+    NEU_OPTION        偏移，並進入狀態 191
+    LTU_OPTION        偏移，並進入狀態 192
+    LEU_OPTION        偏移，並進入狀態 193
+    GTU_OPTION        偏移，並進入狀態 194
+    GEU_OPTION        偏移，並進入狀態 195
+    NUM_OPTION        偏移，並進入狀態 196
+    NAN_OPTION        偏移，並進入狀態 197
+    WIDE_OPTION       偏移，並進入狀態 198
+    RN_OPTION         偏移，並進入狀態 199
+    RZ_OPTION         偏移，並進入狀態 200
+    RM_OPTION         偏移，並進入狀態 201
+    RP_OPTION         偏移，並進入狀態 202
+    RNI_OPTION        偏移，並進入狀態 203
+    RZI_OPTION        偏移，並進入狀態 204
+    RMI_OPTION        偏移，並進入狀態 205
+    RPI_OPTION        偏移，並進入狀態 206
+    UNI_OPTION        偏移，並進入狀態 207
+    GEOM_MODIFIER_1D  偏移，並進入狀態 208
+    GEOM_MODIFIER_2D  偏移，並進入狀態 209
+    GEOM_MODIFIER_3D  偏移，並進入狀態 210
+    SAT_OPTION        偏移，並進入狀態 211
+    FTZ_OPTION        偏移，並進入狀態 212
+    NEG_OPTION        偏移，並進入狀態 213
+    ATOMIC_AND        偏移，並進入狀態 214
+    ATOMIC_OR         偏移，並進入狀態 215
+    ATOMIC_XOR        偏移，並進入狀態 216
+    ATOMIC_CAS        偏移，並進入狀態 217
+    ATOMIC_EXCH       偏移，並進入狀態 218
+    ATOMIC_ADD        偏移，並進入狀態 219
+    ATOMIC_INC        偏移，並進入狀態 220
+    ATOMIC_DEC        偏移，並進入狀態 221
+    ATOMIC_MIN        偏移，並進入狀態 222
+    ATOMIC_MAX        偏移，並進入狀態 223
+    APPROX_OPTION     偏移，並進入狀態 224
+    FULL_OPTION       偏移，並進入狀態 225
+    ANY_OPTION        偏移，並進入狀態 226
+    ALL_OPTION        偏移，並進入狀態 227
+    BALLOT_OPTION     偏移，並進入狀態 228
+    GLOBAL_OPTION     偏移，並進入狀態 229
+    CTA_OPTION        偏移，並進入狀態 230
+    SYS_OPTION        偏移，並進入狀態 231
+    EXIT_OPTION       偏移，並進入狀態 232
+    ABS_OPTION        偏移，並進入狀態 233
+    TO_OPTION         偏移，並進入狀態 234
+    CA_OPTION         偏移，並進入狀態 235
+    CG_OPTION         偏移，並進入狀態 236
+    CS_OPTION         偏移，並進入狀態 237
+    LU_OPTION         偏移，並進入狀態 238
+    CV_OPTION         偏移，並進入狀態 239
+    WB_OPTION         偏移，並進入狀態 240
+    WT_OPTION         偏移，並進入狀態 241
+
+    addressable_spec              進入狀態 242
+    type_spec                     進入狀態 243
+    vector_spec                   進入狀態 62
+    scalar_type                   進入狀態 63
+    option_list                   進入狀態 244
+    option                        進入狀態 245
+    atomic_operation_spec         進入狀態 246
+    rounding_mode                 進入狀態 247
+    floating_point_rounding_mode  進入狀態 248
+    integer_rounding_mode         進入狀態 249
+    compare_spec                  進入狀態 250
+
+
+狀態 143
+
+  123 instruction_statement: IDENTIFIER COLON .
+
+    $預設  使用規則 123 以縮減 (instruction_statement)
+
+
+狀態 144
+
+  134 pred_spec: PRED IDENTIFIER .  [OPCODE]
+  136          | PRED IDENTIFIER . LT_OPTION
+  137          | PRED IDENTIFIER . EQ_OPTION
+  138          | PRED IDENTIFIER . LE_OPTION
+  139          | PRED IDENTIFIER . NE_OPTION
+  140          | PRED IDENTIFIER . GE_OPTION
+  141          | PRED IDENTIFIER . EQU_OPTION
+  142          | PRED IDENTIFIER . GTU_OPTION
+  143          | PRED IDENTIFIER . NEU_OPTION
+  144          | PRED IDENTIFIER . CF_OPTION
+  145          | PRED IDENTIFIER . SF_OPTION
+  146          | PRED IDENTIFIER . NSF_OPTION
+
+    EQ_OPTION   偏移，並進入狀態 251
+    NE_OPTION   偏移，並進入狀態 252
+    LT_OPTION   偏移，並進入狀態 253
+    LE_OPTION   偏移，並進入狀態 254
+    GE_OPTION   偏移，並進入狀態 255
+    EQU_OPTION  偏移，並進入狀態 256
+    NEU_OPTION  偏移，並進入狀態 257
+    GTU_OPTION  偏移，並進入狀態 258
+    CF_OPTION   偏移，並進入狀態 259
+    SF_OPTION   偏移，並進入狀態 260
+    NSF_OPTION  偏移，並進入狀態 261
+
+    $預設  使用規則 134 以縮減 (pred_spec)
+
+
+狀態 145
+
+  135 pred_spec: PRED EXCLAMATION . IDENTIFIER
+
+    IDENTIFIER  偏移，並進入狀態 262
+
+
+狀態 146
+
+   44 statement_block: LEFT_BRACE statement_list RIGHT_BRACE .
+
+    $預設  使用規則 44 以縮減 (statement_block)
+
+
+狀態 147
+
+   49 statement_list: statement_list statement_block .
+
+    $預設  使用規則 49 以縮減 (statement_list)
+
+
+狀態 148
+
+   47 statement_list: statement_list directive_statement .
+
+    $預設  使用規則 47 以縮減 (statement_list)
+
+
+狀態 149
+
+   48 statement_list: statement_list instruction_statement .
+
+    $預設  使用規則 48 以縮減 (statement_list)
+
+
+狀態 150
+
+  122 instruction_statement: instruction SEMI_COLON .
+
+    $預設  使用規則 122 以縮減 (instruction_statement)
+
+
+狀態 151
+
+  221 operand: IDENTIFIER .  [COMMA, SEMI_COLON, RIGHT_PAREN]
+  230        | IDENTIFIER . PLUS INT_OPERAND
+  231        | IDENTIFIER . LO_OPTION
+  233        | IDENTIFIER . HI_OPTION
+  235        | IDENTIFIER . PIPE IDENTIFIER
+  236        | IDENTIFIER . PIPE IDENTIFIER LO_OPTION
+  237        | IDENTIFIER . PIPE IDENTIFIER HI_OPTION
+  238        | IDENTIFIER . BACKSLASH IDENTIFIER
+  239        | IDENTIFIER . BACKSLASH IDENTIFIER LO_OPTION
+  240        | IDENTIFIER . BACKSLASH IDENTIFIER HI_OPTION
+  250 memory_operand: IDENTIFIER . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | IDENTIFIER . LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | IDENTIFIER . LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+
+    LO_OPTION            偏移，並進入狀態 263
+    HI_OPTION            偏移，並進入狀態 264
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 265
+    PLUS                 偏移，並進入狀態 266
+    PIPE                 偏移，並進入狀態 267
+    BACKSLASH            偏移，並進入狀態 268
+
+    $預設  使用規則 221 以縮減 (operand)
+
+
+狀態 152
+
+  246 tex_operand: LEFT_SQUARE_BRACKET . IDENTIFIER COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET
+  249 memory_operand: LEFT_SQUARE_BRACKET . address_expression RIGHT_SQUARE_BRACKET
+  264 address_expression: . IDENTIFIER
+  265                   | . IDENTIFIER LO_OPTION
+  266                   | . IDENTIFIER HI_OPTION
+  267                   | . IDENTIFIER PLUS INT_OPERAND
+  268                   | . INT_OPERAND
+
+    IDENTIFIER   偏移，並進入狀態 269
+    INT_OPERAND  偏移，並進入狀態 270
+
+    address_expression  進入狀態 271
+
+
+狀態 153
+
+  247 builtin_operand: SPECIAL_REGISTER . DIMENSION_MODIFIER
+  248                | SPECIAL_REGISTER .  [COMMA, SEMI_COLON, RIGHT_PAREN]
+
+    DIMENSION_MODIFIER  偏移，並進入狀態 272
+
+    $預設  使用規則 248 以縮減 (builtin_operand)
+
+
+狀態 154
+
+  223 operand: MINUS . IDENTIFIER
+  228        | MINUS . vector_operand
+  232        | MINUS . IDENTIFIER LO_OPTION
+  234        | MINUS . IDENTIFIER HI_OPTION
+  241 vector_operand: . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | . LEFT_BRACE IDENTIFIER RIGHT_BRACE
+  249 memory_operand: . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  250               | . IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | . IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | . IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+  253               | . MINUS memory_operand
+  253               | MINUS . memory_operand
+
+    IDENTIFIER           偏移，並進入狀態 273
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 274
+    MINUS                偏移，並進入狀態 275
+    LEFT_BRACE           偏移，並進入狀態 156
+
+    vector_operand  進入狀態 276
+    memory_operand  進入狀態 277
+
+
+狀態 155
+
+  222 operand: EXCLAMATION . IDENTIFIER
+
+    IDENTIFIER  偏移，並進入狀態 278
+
+
+狀態 156
+
+  241 vector_operand: LEFT_BRACE . IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | LEFT_BRACE . IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | LEFT_BRACE . IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | LEFT_BRACE . IDENTIFIER RIGHT_BRACE
+
+    IDENTIFIER  偏移，並進入狀態 279
+
+
+狀態 157
+
+  126 instruction: opcode_spec LEFT_PAREN . operand RIGHT_PAREN $@12 COMMA operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  221 operand: . IDENTIFIER
+  222        | . EXCLAMATION IDENTIFIER
+  223        | . MINUS IDENTIFIER
+  224        | . memory_operand
+  225        | . literal_operand
+  226        | . builtin_operand
+  227        | . vector_operand
+  228        | . MINUS vector_operand
+  229        | . tex_operand
+  230        | . IDENTIFIER PLUS INT_OPERAND
+  231        | . IDENTIFIER LO_OPTION
+  232        | . MINUS IDENTIFIER LO_OPTION
+  233        | . IDENTIFIER HI_OPTION
+  234        | . MINUS IDENTIFIER HI_OPTION
+  235        | . IDENTIFIER PIPE IDENTIFIER
+  236        | . IDENTIFIER PIPE IDENTIFIER LO_OPTION
+  237        | . IDENTIFIER PIPE IDENTIFIER HI_OPTION
+  238        | . IDENTIFIER BACKSLASH IDENTIFIER
+  239        | . IDENTIFIER BACKSLASH IDENTIFIER LO_OPTION
+  240        | . IDENTIFIER BACKSLASH IDENTIFIER HI_OPTION
+  241 vector_operand: . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | . LEFT_BRACE IDENTIFIER RIGHT_BRACE
+  246 tex_operand: . LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET
+  247 builtin_operand: . SPECIAL_REGISTER DIMENSION_MODIFIER
+  248                | . SPECIAL_REGISTER
+  249 memory_operand: . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  250               | . IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | . IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | . IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+  253               | . MINUS memory_operand
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+
+    IDENTIFIER           偏移，並進入狀態 151
+    INT_OPERAND          偏移，並進入狀態 134
+    FLOAT_OPERAND        偏移，並進入狀態 135
+    DOUBLE_OPERAND       偏移，並進入狀態 136
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 152
+    SPECIAL_REGISTER     偏移，並進入狀態 153
+    MINUS                偏移，並進入狀態 154
+    EXCLAMATION          偏移，並進入狀態 155
+    LEFT_BRACE           偏移，並進入狀態 156
+
+    operand          進入狀態 280
+    vector_operand   進入狀態 160
+    tex_operand      進入狀態 161
+    builtin_operand  進入狀態 162
+    memory_operand   進入狀態 163
+    literal_operand  進入狀態 164
+
+
+狀態 158
+
+  129 instruction: opcode_spec operand_list .
+
+    $預設  使用規則 129 以縮減 (instruction)
+
+
+狀態 159
+
+  127 instruction: opcode_spec operand . COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  128            | opcode_spec operand . COMMA LEFT_PAREN RIGHT_PAREN
+  219 operand_list: operand .  [SEMI_COLON]
+  220             | operand . COMMA operand_list
+
+    COMMA  偏移，並進入狀態 281
+
+    $預設  使用規則 219 以縮減 (operand_list)
+
+
+狀態 160
+
+  227 operand: vector_operand .
+
+    $預設  使用規則 227 以縮減 (operand)
+
+
+狀態 161
+
+  229 operand: tex_operand .
+
+    $預設  使用規則 229 以縮減 (operand)
+
+
+狀態 162
+
+  226 operand: builtin_operand .
+
+    $預設  使用規則 226 以縮減 (operand)
+
+
+狀態 163
+
+  224 operand: memory_operand .
+
+    $預設  使用規則 224 以縮減 (operand)
+
+
+狀態 164
+
+  225 operand: literal_operand .
+
+    $預設  使用規則 225 以縮減 (operand)
+
+
+狀態 165
+
+  124 instruction_statement: pred_spec instruction . SEMI_COLON
+
+    SEMI_COLON  偏移，並進入狀態 282
+
+
+狀態 166
+
+   10 block_spec: MAXNTID_DIRECTIVE INT_OPERAND COMMA . INT_OPERAND COMMA INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 283
+
+
+狀態 167
+
+    9 function_defn: function_decl $@2 block_spec_list $@3 statement_block .
+
+    $預設  使用規則 9 以縮減 (function_defn)
+
+
+狀態 168
+
+   34 param_entry: PARAM_DIRECTIVE $@10 . variable_spec ptr_spec identifier_spec
+   67 variable_spec: . var_spec_list
+   74 var_spec_list: . var_spec
+   75              | . var_spec_list var_spec
+   76 var_spec: . space_spec
+   77         | . type_spec
+   78         | . align_spec
+   79         | . EXTERN_DIRECTIVE
+   80 align_spec: . ALIGN_DIRECTIVE INT_OPERAND
+   81 space_spec: . REG_DIRECTIVE
+   82           | . SREG_DIRECTIVE
+   83           | . addressable_spec
+   84 addressable_spec: . CONST_DIRECTIVE
+   85                 | . GLOBAL_DIRECTIVE
+   86                 | . LOCAL_DIRECTIVE
+   87                 | . PARAM_DIRECTIVE
+   88                 | . SHARED_DIRECTIVE
+   89                 | . SURF_DIRECTIVE
+   90                 | . TEX_DIRECTIVE
+   91 type_spec: . scalar_type
+   92          | . vector_spec scalar_type
+   93 vector_spec: . V2_TYPE
+   94            | . V3_TYPE
+   95            | . V4_TYPE
+   96 scalar_type: . S8_TYPE
+   97            | . S16_TYPE
+   98            | . S32_TYPE
+   99            | . S64_TYPE
+  100            | . U8_TYPE
+  101            | . U16_TYPE
+  102            | . U32_TYPE
+  103            | . U64_TYPE
+  104            | . F16_TYPE
+  105            | . F32_TYPE
+  106            | . F64_TYPE
+  107            | . FF64_TYPE
+  108            | . B8_TYPE
+  109            | . B16_TYPE
+  110            | . B32_TYPE
+  111            | . B64_TYPE
+  112            | . BB64_TYPE
+  113            | . BB128_TYPE
+  114            | . PRED_TYPE
+  115            | . TEXREF_TYPE
+  116            | . SAMPLERREF_TYPE
+  117            | . SURFREF_TYPE
+
+    ALIGN_DIRECTIVE   偏移，並進入狀態 3
+    CONST_DIRECTIVE   偏移，並進入狀態 4
+    EXTERN_DIRECTIVE  偏移，並進入狀態 84
+    GLOBAL_DIRECTIVE  偏移，並進入狀態 10
+    LOCAL_DIRECTIVE   偏移，並進入狀態 11
+    PARAM_DIRECTIVE   偏移，並進入狀態 14
+    REG_DIRECTIVE     偏移，並進入狀態 16
+    SHARED_DIRECTIVE  偏移，並進入狀態 17
+    SREG_DIRECTIVE    偏移，並進入狀態 18
+    SURF_DIRECTIVE    偏移，並進入狀態 19
+    TEX_DIRECTIVE     偏移，並進入狀態 21
+    S8_TYPE           偏移，並進入狀態 25
+    S16_TYPE          偏移，並進入狀態 26
+    S32_TYPE          偏移，並進入狀態 27
+    S64_TYPE          偏移，並進入狀態 28
+    U8_TYPE           偏移，並進入狀態 29
+    U16_TYPE          偏移，並進入狀態 30
+    U32_TYPE          偏移，並進入狀態 31
+    U64_TYPE          偏移，並進入狀態 32
+    F16_TYPE          偏移，並進入狀態 33
+    F32_TYPE          偏移，並進入狀態 34
+    F64_TYPE          偏移，並進入狀態 35
+    FF64_TYPE         偏移，並進入狀態 36
+    B8_TYPE           偏移，並進入狀態 37
+    B16_TYPE          偏移，並進入狀態 38
+    B32_TYPE          偏移，並進入狀態 39
+    B64_TYPE          偏移，並進入狀態 40
+    BB64_TYPE         偏移，並進入狀態 41
+    BB128_TYPE        偏移，並進入狀態 42
+    PRED_TYPE         偏移，並進入狀態 43
+    TEXREF_TYPE       偏移，並進入狀態 44
+    SAMPLERREF_TYPE   偏移，並進入狀態 45
+    SURFREF_TYPE      偏移，並進入狀態 46
+    V2_TYPE           偏移，並進入狀態 47
+    V3_TYPE           偏移，並進入狀態 48
+    V4_TYPE           偏移，並進入狀態 49
+
+    variable_spec     進入狀態 284
+    var_spec_list     進入狀態 56
+    var_spec          進入狀態 57
+    align_spec        進入狀態 58
+    space_spec        進入狀態 59
+    addressable_spec  進入狀態 60
+    type_spec         進入狀態 61
+    vector_spec       進入狀態 62
+    scalar_type       進入狀態 63
+
+
+狀態 169
+
+   36 param_entry: REG_DIRECTIVE $@11 . variable_spec identifier_spec
+   67 variable_spec: . var_spec_list
+   74 var_spec_list: . var_spec
+   75              | . var_spec_list var_spec
+   76 var_spec: . space_spec
+   77         | . type_spec
+   78         | . align_spec
+   79         | . EXTERN_DIRECTIVE
+   80 align_spec: . ALIGN_DIRECTIVE INT_OPERAND
+   81 space_spec: . REG_DIRECTIVE
+   82           | . SREG_DIRECTIVE
+   83           | . addressable_spec
+   84 addressable_spec: . CONST_DIRECTIVE
+   85                 | . GLOBAL_DIRECTIVE
+   86                 | . LOCAL_DIRECTIVE
+   87                 | . PARAM_DIRECTIVE
+   88                 | . SHARED_DIRECTIVE
+   89                 | . SURF_DIRECTIVE
+   90                 | . TEX_DIRECTIVE
+   91 type_spec: . scalar_type
+   92          | . vector_spec scalar_type
+   93 vector_spec: . V2_TYPE
+   94            | . V3_TYPE
+   95            | . V4_TYPE
+   96 scalar_type: . S8_TYPE
+   97            | . S16_TYPE
+   98            | . S32_TYPE
+   99            | . S64_TYPE
+  100            | . U8_TYPE
+  101            | . U16_TYPE
+  102            | . U32_TYPE
+  103            | . U64_TYPE
+  104            | . F16_TYPE
+  105            | . F32_TYPE
+  106            | . F64_TYPE
+  107            | . FF64_TYPE
+  108            | . B8_TYPE
+  109            | . B16_TYPE
+  110            | . B32_TYPE
+  111            | . B64_TYPE
+  112            | . BB64_TYPE
+  113            | . BB128_TYPE
+  114            | . PRED_TYPE
+  115            | . TEXREF_TYPE
+  116            | . SAMPLERREF_TYPE
+  117            | . SURFREF_TYPE
+
+    ALIGN_DIRECTIVE   偏移，並進入狀態 3
+    CONST_DIRECTIVE   偏移，並進入狀態 4
+    EXTERN_DIRECTIVE  偏移，並進入狀態 84
+    GLOBAL_DIRECTIVE  偏移，並進入狀態 10
+    LOCAL_DIRECTIVE   偏移，並進入狀態 11
+    PARAM_DIRECTIVE   偏移，並進入狀態 14
+    REG_DIRECTIVE     偏移，並進入狀態 16
+    SHARED_DIRECTIVE  偏移，並進入狀態 17
+    SREG_DIRECTIVE    偏移，並進入狀態 18
+    SURF_DIRECTIVE    偏移，並進入狀態 19
+    TEX_DIRECTIVE     偏移，並進入狀態 21
+    S8_TYPE           偏移，並進入狀態 25
+    S16_TYPE          偏移，並進入狀態 26
+    S32_TYPE          偏移，並進入狀態 27
+    S64_TYPE          偏移，並進入狀態 28
+    U8_TYPE           偏移，並進入狀態 29
+    U16_TYPE          偏移，並進入狀態 30
+    U32_TYPE          偏移，並進入狀態 31
+    U64_TYPE          偏移，並進入狀態 32
+    F16_TYPE          偏移，並進入狀態 33
+    F32_TYPE          偏移，並進入狀態 34
+    F64_TYPE          偏移，並進入狀態 35
+    FF64_TYPE         偏移，並進入狀態 36
+    B8_TYPE           偏移，並進入狀態 37
+    B16_TYPE          偏移，並進入狀態 38
+    B32_TYPE          偏移，並進入狀態 39
+    B64_TYPE          偏移，並進入狀態 40
+    BB64_TYPE         偏移，並進入狀態 41
+    BB128_TYPE        偏移，並進入狀態 42
+    PRED_TYPE         偏移，並進入狀態 43
+    TEXREF_TYPE       偏移，並進入狀態 44
+    SAMPLERREF_TYPE   偏移，並進入狀態 45
+    SURFREF_TYPE      偏移，並進入狀態 46
+    V2_TYPE           偏移，並進入狀態 47
+    V3_TYPE           偏移，並進入狀態 48
+    V4_TYPE           偏移，並進入狀態 49
+
+    variable_spec     進入狀態 285
+    var_spec_list     進入狀態 56
+    var_spec          進入狀態 57
+    align_spec        進入狀態 58
+    space_spec        進入狀態 59
+    addressable_spec  進入狀態 60
+    type_spec         進入狀態 61
+    vector_spec       進入狀態 62
+    scalar_type       進入狀態 63
+
+
+狀態 170
+
+   16 $@5: . %empty
+   17 function_decl: function_decl_header LEFT_PAREN $@4 param_entry RIGHT_PAREN . $@5 function_ident_param
+
+    $預設  使用規則 16 以縮減 ($@5)
+
+    $@5  進入狀態 286
+
+
+狀態 171
+
+   22 $@8: . %empty
+   23 function_ident_param: IDENTIFIER $@7 LEFT_PAREN . $@8 param_list RIGHT_PAREN
+
+    $預設  使用規則 22 以縮減 ($@8)
+
+    $@8  進入狀態 287
+
+
+狀態 172
+
+   73 identifier_spec: IDENTIFIER LEFT_SQUARE_BRACKET INT_OPERAND RIGHT_SQUARE_BRACKET .
+
+    $預設  使用規則 73 以縮減 (identifier_spec)
+
+
+狀態 173
+
+   71 identifier_spec: IDENTIFIER LEFT_ANGLE_BRACKET INT_OPERAND RIGHT_ANGLE_BRACKET .
+
+    $預設  使用規則 71 以縮減 (identifier_spec)
+
+
+狀態 174
+
+  119 initializer_list: LEFT_BRACE initializer_list . RIGHT_BRACE
+
+    RIGHT_BRACE  偏移，並進入狀態 288
+
+
+狀態 175
+
+  118 initializer_list: LEFT_BRACE literal_list . RIGHT_BRACE
+  121 literal_list: literal_list . COMMA literal_operand
+
+    COMMA        偏移，並進入狀態 289
+    RIGHT_BRACE  偏移，並進入狀態 290
+
+
+狀態 176
+
+  120 literal_list: literal_operand .
+
+    $預設  使用規則 120 以縮減 (literal_list)
+
+
+狀態 177
+
+   66 variable_declaration: CONSTPTR_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA INT_OPERAND .
+
+    $預設  使用規則 66 以縮減 (variable_declaration)
+
+
+狀態 178
+
+   56 directive_statement: TARGET_DIRECTIVE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER .
+
+    $預設  使用規則 56 以縮減 (directive_statement)
+
+
+狀態 179
+
+  173 option: HALF_OPTION .
+
+    $預設  使用規則 173 以縮減 (option)
+
+
+狀態 180
+
+  201 compare_spec: EQ_OPTION .
+
+    $預設  使用規則 201 以縮減 (compare_spec)
+
+
+狀態 181
+
+  202 compare_spec: NE_OPTION .
+
+    $預設  使用規則 202 以縮減 (compare_spec)
+
+
+狀態 182
+
+  203 compare_spec: LT_OPTION .
+
+    $預設  使用規則 203 以縮減 (compare_spec)
+
+
+狀態 183
+
+  204 compare_spec: LE_OPTION .
+
+    $預設  使用規則 204 以縮減 (compare_spec)
+
+
+狀態 184
+
+  205 compare_spec: GT_OPTION .
+
+    $預設  使用規則 205 以縮減 (compare_spec)
+
+
+狀態 185
+
+  206 compare_spec: GE_OPTION .
+
+    $預設  使用規則 206 以縮減 (compare_spec)
+
+
+狀態 186
+
+  207 compare_spec: LO_OPTION .
+
+    $預設  使用規則 207 以縮減 (compare_spec)
+
+
+狀態 187
+
+  208 compare_spec: LS_OPTION .
+
+    $預設  使用規則 208 以縮減 (compare_spec)
+
+
+狀態 188
+
+  209 compare_spec: HI_OPTION .
+
+    $預設  使用規則 209 以縮減 (compare_spec)
+
+
+狀態 189
+
+  210 compare_spec: HS_OPTION .
+
+    $預設  使用規則 210 以縮減 (compare_spec)
+
+
+狀態 190
+
+  211 compare_spec: EQU_OPTION .
+
+    $預設  使用規則 211 以縮減 (compare_spec)
+
+
+狀態 191
+
+  212 compare_spec: NEU_OPTION .
+
+    $預設  使用規則 212 以縮減 (compare_spec)
+
+
+狀態 192
+
+  213 compare_spec: LTU_OPTION .
+
+    $預設  使用規則 213 以縮減 (compare_spec)
+
+
+狀態 193
+
+  214 compare_spec: LEU_OPTION .
+
+    $預設  使用規則 214 以縮減 (compare_spec)
+
+
+狀態 194
+
+  215 compare_spec: GTU_OPTION .
+
+    $預設  使用規則 215 以縮減 (compare_spec)
+
+
+狀態 195
+
+  216 compare_spec: GEU_OPTION .
+
+    $預設  使用規則 216 以縮減 (compare_spec)
+
+
+狀態 196
+
+  217 compare_spec: NUM_OPTION .
+
+    $預設  使用規則 217 以縮減 (compare_spec)
+
+
+狀態 197
+
+  218 compare_spec: NAN_OPTION .
+
+    $預設  使用規則 218 以縮減 (compare_spec)
+
+
+狀態 198
+
+  154 option: WIDE_OPTION .
+
+    $預設  使用規則 154 以縮減 (option)
+
+
+狀態 199
+
+  193 floating_point_rounding_mode: RN_OPTION .
+
+    $預設  使用規則 193 以縮減 (floating_point_rounding_mode)
+
+
+狀態 200
+
+  194 floating_point_rounding_mode: RZ_OPTION .
+
+    $預設  使用規則 194 以縮減 (floating_point_rounding_mode)
+
+
+狀態 201
+
+  195 floating_point_rounding_mode: RM_OPTION .
+
+    $預設  使用規則 195 以縮減 (floating_point_rounding_mode)
+
+
+狀態 202
+
+  196 floating_point_rounding_mode: RP_OPTION .
+
+    $預設  使用規則 196 以縮減 (floating_point_rounding_mode)
+
+
+狀態 203
+
+  197 integer_rounding_mode: RNI_OPTION .
+
+    $預設  使用規則 197 以縮減 (integer_rounding_mode)
+
+
+狀態 204
+
+  198 integer_rounding_mode: RZI_OPTION .
+
+    $預設  使用規則 198 以縮減 (integer_rounding_mode)
+
+
+狀態 205
+
+  199 integer_rounding_mode: RMI_OPTION .
+
+    $預設  使用規則 199 以縮減 (integer_rounding_mode)
+
+
+狀態 206
+
+  200 integer_rounding_mode: RPI_OPTION .
+
+    $預設  使用規則 200 以縮減 (integer_rounding_mode)
+
+
+狀態 207
+
+  153 option: UNI_OPTION .
+
+    $預設  使用規則 153 以縮減 (option)
+
+
+狀態 208
+
+  161 option: GEOM_MODIFIER_1D .
+
+    $預設  使用規則 161 以縮減 (option)
+
+
+狀態 209
+
+  162 option: GEOM_MODIFIER_2D .
+
+    $預設  使用規則 162 以縮減 (option)
+
+
+狀態 210
+
+  163 option: GEOM_MODIFIER_3D .
+
+    $預設  使用規則 163 以縮減 (option)
+
+
+狀態 211
+
+  164 option: SAT_OPTION .
+
+    $預設  使用規則 164 以縮減 (option)
+
+
+狀態 212
+
+  165 option: FTZ_OPTION .
+
+    $預設  使用規則 165 以縮減 (option)
+
+
+狀態 213
+
+  166 option: NEG_OPTION .
+
+    $預設  使用規則 166 以縮減 (option)
+
+
+狀態 214
+
+  181 atomic_operation_spec: ATOMIC_AND .
+
+    $預設  使用規則 181 以縮減 (atomic_operation_spec)
+
+
+狀態 215
+
+  182 atomic_operation_spec: ATOMIC_OR .
+
+    $預設  使用規則 182 以縮減 (atomic_operation_spec)
+
+
+狀態 216
+
+  183 atomic_operation_spec: ATOMIC_XOR .
+
+    $預設  使用規則 183 以縮減 (atomic_operation_spec)
+
+
+狀態 217
+
+  184 atomic_operation_spec: ATOMIC_CAS .
+
+    $預設  使用規則 184 以縮減 (atomic_operation_spec)
+
+
+狀態 218
+
+  185 atomic_operation_spec: ATOMIC_EXCH .
+
+    $預設  使用規則 185 以縮減 (atomic_operation_spec)
+
+
+狀態 219
+
+  186 atomic_operation_spec: ATOMIC_ADD .
+
+    $預設  使用規則 186 以縮減 (atomic_operation_spec)
+
+
+狀態 220
+
+  187 atomic_operation_spec: ATOMIC_INC .
+
+    $預設  使用規則 187 以縮減 (atomic_operation_spec)
+
+
+狀態 221
+
+  188 atomic_operation_spec: ATOMIC_DEC .
+
+    $預設  使用規則 188 以縮減 (atomic_operation_spec)
+
+
+狀態 222
+
+  189 atomic_operation_spec: ATOMIC_MIN .
+
+    $預設  使用規則 189 以縮減 (atomic_operation_spec)
+
+
+狀態 223
+
+  190 atomic_operation_spec: ATOMIC_MAX .
+
+    $預設  使用規則 190 以縮減 (atomic_operation_spec)
+
+
+狀態 224
+
+  167 option: APPROX_OPTION .
+
+    $預設  使用規則 167 以縮減 (option)
+
+
+狀態 225
+
+  168 option: FULL_OPTION .
+
+    $預設  使用規則 168 以縮減 (option)
+
+
+狀態 226
+
+  155 option: ANY_OPTION .
+
+    $預設  使用規則 155 以縮減 (option)
+
+
+狀態 227
+
+  156 option: ALL_OPTION .
+
+    $預設  使用規則 156 以縮減 (option)
+
+
+狀態 228
+
+  157 option: BALLOT_OPTION .
+
+    $預設  使用規則 157 以縮減 (option)
+
+
+狀態 229
+
+  158 option: GLOBAL_OPTION .
+
+    $預設  使用規則 158 以縮減 (option)
+
+
+狀態 230
+
+  159 option: CTA_OPTION .
+
+    $預設  使用規則 159 以縮減 (option)
+
+
+狀態 231
+
+  160 option: SYS_OPTION .
+
+    $預設  使用規則 160 以縮減 (option)
+
+
+狀態 232
+
+  169 option: EXIT_OPTION .
+
+    $預設  使用規則 169 以縮減 (option)
+
+
+狀態 233
+
+  170 option: ABS_OPTION .
+
+    $預設  使用規則 170 以縮減 (option)
+
+
+狀態 234
+
+  172 option: TO_OPTION .
+
+    $預設  使用規則 172 以縮減 (option)
+
+
+狀態 235
+
+  174 option: CA_OPTION .
+
+    $預設  使用規則 174 以縮減 (option)
+
+
+狀態 236
+
+  175 option: CG_OPTION .
+
+    $預設  使用規則 175 以縮減 (option)
+
+
+狀態 237
+
+  176 option: CS_OPTION .
+
+    $預設  使用規則 176 以縮減 (option)
+
+
+狀態 238
+
+  177 option: LU_OPTION .
+
+    $預設  使用規則 177 以縮減 (option)
+
+
+狀態 239
+
+  178 option: CV_OPTION .
+
+    $預設  使用規則 178 以縮減 (option)
+
+
+狀態 240
+
+  179 option: WB_OPTION .
+
+    $預設  使用規則 179 以縮減 (option)
+
+
+狀態 241
+
+  180 option: WT_OPTION .
+
+    $預設  使用規則 180 以縮減 (option)
+
+
+狀態 242
+
+  151 option: addressable_spec .
+
+    $預設  使用規則 151 以縮減 (option)
+
+
+狀態 243
+
+  149 option: type_spec .
+
+    $預設  使用規則 149 以縮減 (option)
+
+
+狀態 244
+
+  132 opcode_spec: OPCODE $@13 option_list .
+
+    $預設  使用規則 132 以縮減 (opcode_spec)
+
+
+狀態 245
+
+   84 addressable_spec: . CONST_DIRECTIVE
+   85                 | . GLOBAL_DIRECTIVE
+   86                 | . LOCAL_DIRECTIVE
+   87                 | . PARAM_DIRECTIVE
+   88                 | . SHARED_DIRECTIVE
+   89                 | . SURF_DIRECTIVE
+   90                 | . TEX_DIRECTIVE
+   91 type_spec: . scalar_type
+   92          | . vector_spec scalar_type
+   93 vector_spec: . V2_TYPE
+   94            | . V3_TYPE
+   95            | . V4_TYPE
+   96 scalar_type: . S8_TYPE
+   97            | . S16_TYPE
+   98            | . S32_TYPE
+   99            | . S64_TYPE
+  100            | . U8_TYPE
+  101            | . U16_TYPE
+  102            | . U32_TYPE
+  103            | . U64_TYPE
+  104            | . F16_TYPE
+  105            | . F32_TYPE
+  106            | . F64_TYPE
+  107            | . FF64_TYPE
+  108            | . B8_TYPE
+  109            | . B16_TYPE
+  110            | . B32_TYPE
+  111            | . B64_TYPE
+  112            | . BB64_TYPE
+  113            | . BB128_TYPE
+  114            | . PRED_TYPE
+  115            | . TEXREF_TYPE
+  116            | . SAMPLERREF_TYPE
+  117            | . SURFREF_TYPE
+  147 option_list: . option
+  147            | option .  [IDENTIFIER, INT_OPERAND, FLOAT_OPERAND, DOUBLE_OPERAND, LEFT_SQUARE_BRACKET, SPECIAL_REGISTER, MINUS, SEMI_COLON, EXCLAMATION, LEFT_BRACE, LEFT_PAREN]
+  148            | . option option_list
+  148            | option . option_list
+  149 option: . type_spec
+  150       | . compare_spec
+  151       | . addressable_spec
+  152       | . rounding_mode
+  153       | . UNI_OPTION
+  154       | . WIDE_OPTION
+  155       | . ANY_OPTION
+  156       | . ALL_OPTION
+  157       | . BALLOT_OPTION
+  158       | . GLOBAL_OPTION
+  159       | . CTA_OPTION
+  160       | . SYS_OPTION
+  161       | . GEOM_MODIFIER_1D
+  162       | . GEOM_MODIFIER_2D
+  163       | . GEOM_MODIFIER_3D
+  164       | . SAT_OPTION
+  165       | . FTZ_OPTION
+  166       | . NEG_OPTION
+  167       | . APPROX_OPTION
+  168       | . FULL_OPTION
+  169       | . EXIT_OPTION
+  170       | . ABS_OPTION
+  171       | . atomic_operation_spec
+  172       | . TO_OPTION
+  173       | . HALF_OPTION
+  174       | . CA_OPTION
+  175       | . CG_OPTION
+  176       | . CS_OPTION
+  177       | . LU_OPTION
+  178       | . CV_OPTION
+  179       | . WB_OPTION
+  180       | . WT_OPTION
+  181 atomic_operation_spec: . ATOMIC_AND
+  182                      | . ATOMIC_OR
+  183                      | . ATOMIC_XOR
+  184                      | . ATOMIC_CAS
+  185                      | . ATOMIC_EXCH
+  186                      | . ATOMIC_ADD
+  187                      | . ATOMIC_INC
+  188                      | . ATOMIC_DEC
+  189                      | . ATOMIC_MIN
+  190                      | . ATOMIC_MAX
+  191 rounding_mode: . floating_point_rounding_mode
+  192              | . integer_rounding_mode
+  193 floating_point_rounding_mode: . RN_OPTION
+  194                             | . RZ_OPTION
+  195                             | . RM_OPTION
+  196                             | . RP_OPTION
+  197 integer_rounding_mode: . RNI_OPTION
+  198                      | . RZI_OPTION
+  199                      | . RMI_OPTION
+  200                      | . RPI_OPTION
+  201 compare_spec: . EQ_OPTION
+  202             | . NE_OPTION
+  203             | . LT_OPTION
+  204             | . LE_OPTION
+  205             | . GT_OPTION
+  206             | . GE_OPTION
+  207             | . LO_OPTION
+  208             | . LS_OPTION
+  209             | . HI_OPTION
+  210             | . HS_OPTION
+  211             | . EQU_OPTION
+  212             | . NEU_OPTION
+  213             | . LTU_OPTION
+  214             | . LEU_OPTION
+  215             | . GTU_OPTION
+  216             | . GEU_OPTION
+  217             | . NUM_OPTION
+  218             | . NAN_OPTION
+
+    CONST_DIRECTIVE   偏移，並進入狀態 4
+    GLOBAL_DIRECTIVE  偏移，並進入狀態 10
+    LOCAL_DIRECTIVE   偏移，並進入狀態 11
+    PARAM_DIRECTIVE   偏移，並進入狀態 14
+    SHARED_DIRECTIVE  偏移，並進入狀態 17
+    SURF_DIRECTIVE    偏移，並進入狀態 19
+    TEX_DIRECTIVE     偏移，並進入狀態 21
+    S8_TYPE           偏移，並進入狀態 25
+    S16_TYPE          偏移，並進入狀態 26
+    S32_TYPE          偏移，並進入狀態 27
+    S64_TYPE          偏移，並進入狀態 28
+    U8_TYPE           偏移，並進入狀態 29
+    U16_TYPE          偏移，並進入狀態 30
+    U32_TYPE          偏移，並進入狀態 31
+    U64_TYPE          偏移，並進入狀態 32
+    F16_TYPE          偏移，並進入狀態 33
+    F32_TYPE          偏移，並進入狀態 34
+    F64_TYPE          偏移，並進入狀態 35
+    FF64_TYPE         偏移，並進入狀態 36
+    B8_TYPE           偏移，並進入狀態 37
+    B16_TYPE          偏移，並進入狀態 38
+    B32_TYPE          偏移，並進入狀態 39
+    B64_TYPE          偏移，並進入狀態 40
+    BB64_TYPE         偏移，並進入狀態 41
+    BB128_TYPE        偏移，並進入狀態 42
+    PRED_TYPE         偏移，並進入狀態 43
+    TEXREF_TYPE       偏移，並進入狀態 44
+    SAMPLERREF_TYPE   偏移，並進入狀態 45
+    SURFREF_TYPE      偏移，並進入狀態 46
+    V2_TYPE           偏移，並進入狀態 47
+    V3_TYPE           偏移，並進入狀態 48
+    V4_TYPE           偏移，並進入狀態 49
+    HALF_OPTION       偏移，並進入狀態 179
+    EQ_OPTION         偏移，並進入狀態 180
+    NE_OPTION         偏移，並進入狀態 181
+    LT_OPTION         偏移，並進入狀態 182
+    LE_OPTION         偏移，並進入狀態 183
+    GT_OPTION         偏移，並進入狀態 184
+    GE_OPTION         偏移，並進入狀態 185
+    LO_OPTION         偏移，並進入狀態 186
+    LS_OPTION         偏移，並進入狀態 187
+    HI_OPTION         偏移，並進入狀態 188
+    HS_OPTION         偏移，並進入狀態 189
+    EQU_OPTION        偏移，並進入狀態 190
+    NEU_OPTION        偏移，並進入狀態 191
+    LTU_OPTION        偏移，並進入狀態 192
+    LEU_OPTION        偏移，並進入狀態 193
+    GTU_OPTION        偏移，並進入狀態 194
+    GEU_OPTION        偏移，並進入狀態 195
+    NUM_OPTION        偏移，並進入狀態 196
+    NAN_OPTION        偏移，並進入狀態 197
+    WIDE_OPTION       偏移，並進入狀態 198
+    RN_OPTION         偏移，並進入狀態 199
+    RZ_OPTION         偏移，並進入狀態 200
+    RM_OPTION         偏移，並進入狀態 201
+    RP_OPTION         偏移，並進入狀態 202
+    RNI_OPTION        偏移，並進入狀態 203
+    RZI_OPTION        偏移，並進入狀態 204
+    RMI_OPTION        偏移，並進入狀態 205
+    RPI_OPTION        偏移，並進入狀態 206
+    UNI_OPTION        偏移，並進入狀態 207
+    GEOM_MODIFIER_1D  偏移，並進入狀態 208
+    GEOM_MODIFIER_2D  偏移，並進入狀態 209
+    GEOM_MODIFIER_3D  偏移，並進入狀態 210
+    SAT_OPTION        偏移，並進入狀態 211
+    FTZ_OPTION        偏移，並進入狀態 212
+    NEG_OPTION        偏移，並進入狀態 213
+    ATOMIC_AND        偏移，並進入狀態 214
+    ATOMIC_OR         偏移，並進入狀態 215
+    ATOMIC_XOR        偏移，並進入狀態 216
+    ATOMIC_CAS        偏移，並進入狀態 217
+    ATOMIC_EXCH       偏移，並進入狀態 218
+    ATOMIC_ADD        偏移，並進入狀態 219
+    ATOMIC_INC        偏移，並進入狀態 220
+    ATOMIC_DEC        偏移，並進入狀態 221
+    ATOMIC_MIN        偏移，並進入狀態 222
+    ATOMIC_MAX        偏移，並進入狀態 223
+    APPROX_OPTION     偏移，並進入狀態 224
+    FULL_OPTION       偏移，並進入狀態 225
+    ANY_OPTION        偏移，並進入狀態 226
+    ALL_OPTION        偏移，並進入狀態 227
+    BALLOT_OPTION     偏移，並進入狀態 228
+    GLOBAL_OPTION     偏移，並進入狀態 229
+    CTA_OPTION        偏移，並進入狀態 230
+    SYS_OPTION        偏移，並進入狀態 231
+    EXIT_OPTION       偏移，並進入狀態 232
+    ABS_OPTION        偏移，並進入狀態 233
+    TO_OPTION         偏移，並進入狀態 234
+    CA_OPTION         偏移，並進入狀態 235
+    CG_OPTION         偏移，並進入狀態 236
+    CS_OPTION         偏移，並進入狀態 237
+    LU_OPTION         偏移，並進入狀態 238
+    CV_OPTION         偏移，並進入狀態 239
+    WB_OPTION         偏移，並進入狀態 240
+    WT_OPTION         偏移，並進入狀態 241
+
+    $預設  使用規則 147 以縮減 (option_list)
+
+    addressable_spec              進入狀態 242
+    type_spec                     進入狀態 243
+    vector_spec                   進入狀態 62
+    scalar_type                   進入狀態 63
+    option_list                   進入狀態 291
+    option                        進入狀態 245
+    atomic_operation_spec         進入狀態 246
+    rounding_mode                 進入狀態 247
+    floating_point_rounding_mode  進入狀態 248
+    integer_rounding_mode         進入狀態 249
+    compare_spec                  進入狀態 250
+
+
+狀態 246
+
+  171 option: atomic_operation_spec .
+
+    $預設  使用規則 171 以縮減 (option)
+
+
+狀態 247
+
+  152 option: rounding_mode .
+
+    $預設  使用規則 152 以縮減 (option)
+
+
+狀態 248
+
+  191 rounding_mode: floating_point_rounding_mode .
+
+    $預設  使用規則 191 以縮減 (rounding_mode)
+
+
+狀態 249
+
+  192 rounding_mode: integer_rounding_mode .
+
+    $預設  使用規則 192 以縮減 (rounding_mode)
+
+
+狀態 250
+
+  150 option: compare_spec .
+
+    $預設  使用規則 150 以縮減 (option)
+
+
+狀態 251
+
+  137 pred_spec: PRED IDENTIFIER EQ_OPTION .
+
+    $預設  使用規則 137 以縮減 (pred_spec)
+
+
+狀態 252
+
+  139 pred_spec: PRED IDENTIFIER NE_OPTION .
+
+    $預設  使用規則 139 以縮減 (pred_spec)
+
+
+狀態 253
+
+  136 pred_spec: PRED IDENTIFIER LT_OPTION .
+
+    $預設  使用規則 136 以縮減 (pred_spec)
+
+
+狀態 254
+
+  138 pred_spec: PRED IDENTIFIER LE_OPTION .
+
+    $預設  使用規則 138 以縮減 (pred_spec)
+
+
+狀態 255
+
+  140 pred_spec: PRED IDENTIFIER GE_OPTION .
+
+    $預設  使用規則 140 以縮減 (pred_spec)
+
+
+狀態 256
+
+  141 pred_spec: PRED IDENTIFIER EQU_OPTION .
+
+    $預設  使用規則 141 以縮減 (pred_spec)
+
+
+狀態 257
+
+  143 pred_spec: PRED IDENTIFIER NEU_OPTION .
+
+    $預設  使用規則 143 以縮減 (pred_spec)
+
+
+狀態 258
+
+  142 pred_spec: PRED IDENTIFIER GTU_OPTION .
+
+    $預設  使用規則 142 以縮減 (pred_spec)
+
+
+狀態 259
+
+  144 pred_spec: PRED IDENTIFIER CF_OPTION .
+
+    $預設  使用規則 144 以縮減 (pred_spec)
+
+
+狀態 260
+
+  145 pred_spec: PRED IDENTIFIER SF_OPTION .
+
+    $預設  使用規則 145 以縮減 (pred_spec)
+
+
+狀態 261
+
+  146 pred_spec: PRED IDENTIFIER NSF_OPTION .
+
+    $預設  使用規則 146 以縮減 (pred_spec)
+
+
+狀態 262
+
+  135 pred_spec: PRED EXCLAMATION IDENTIFIER .
+
+    $預設  使用規則 135 以縮減 (pred_spec)
+
+
+狀態 263
+
+  231 operand: IDENTIFIER LO_OPTION .
+
+    $預設  使用規則 231 以縮減 (operand)
+
+
+狀態 264
+
+  233 operand: IDENTIFIER HI_OPTION .
+
+    $預設  使用規則 233 以縮減 (operand)
+
+
+狀態 265
+
+  250 memory_operand: IDENTIFIER LEFT_SQUARE_BRACKET . address_expression RIGHT_SQUARE_BRACKET
+  251               | IDENTIFIER LEFT_SQUARE_BRACKET . literal_operand RIGHT_SQUARE_BRACKET
+  252               | IDENTIFIER LEFT_SQUARE_BRACKET . twin_operand RIGHT_SQUARE_BRACKET
+  254 twin_operand: . IDENTIFIER PLUS IDENTIFIER
+  255             | . IDENTIFIER PLUS IDENTIFIER LO_OPTION
+  256             | . IDENTIFIER PLUS IDENTIFIER HI_OPTION
+  257             | . IDENTIFIER PLUS EQUALS IDENTIFIER
+  258             | . IDENTIFIER PLUS EQUALS IDENTIFIER LO_OPTION
+  259             | . IDENTIFIER PLUS EQUALS IDENTIFIER HI_OPTION
+  260             | . IDENTIFIER PLUS EQUALS INT_OPERAND
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+  264 address_expression: . IDENTIFIER
+  265                   | . IDENTIFIER LO_OPTION
+  266                   | . IDENTIFIER HI_OPTION
+  267                   | . IDENTIFIER PLUS INT_OPERAND
+  268                   | . INT_OPERAND
+
+    IDENTIFIER      偏移，並進入狀態 292
+    INT_OPERAND     偏移，並進入狀態 293
+    FLOAT_OPERAND   偏移，並進入狀態 135
+    DOUBLE_OPERAND  偏移，並進入狀態 136
+
+    twin_operand        進入狀態 294
+    literal_operand     進入狀態 295
+    address_expression  進入狀態 296
+
+
+狀態 266
+
+  230 operand: IDENTIFIER PLUS . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 297
+
+
+狀態 267
+
+  235 operand: IDENTIFIER PIPE . IDENTIFIER
+  236        | IDENTIFIER PIPE . IDENTIFIER LO_OPTION
+  237        | IDENTIFIER PIPE . IDENTIFIER HI_OPTION
+
+    IDENTIFIER  偏移，並進入狀態 298
+
+
+狀態 268
+
+  238 operand: IDENTIFIER BACKSLASH . IDENTIFIER
+  239        | IDENTIFIER BACKSLASH . IDENTIFIER LO_OPTION
+  240        | IDENTIFIER BACKSLASH . IDENTIFIER HI_OPTION
+
+    IDENTIFIER  偏移，並進入狀態 299
+
+
+狀態 269
+
+  246 tex_operand: LEFT_SQUARE_BRACKET IDENTIFIER . COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET
+  264 address_expression: IDENTIFIER .  [RIGHT_SQUARE_BRACKET]
+  265                   | IDENTIFIER . LO_OPTION
+  266                   | IDENTIFIER . HI_OPTION
+  267                   | IDENTIFIER . PLUS INT_OPERAND
+
+    COMMA      偏移，並進入狀態 300
+    LO_OPTION  偏移，並進入狀態 301
+    HI_OPTION  偏移，並進入狀態 302
+    PLUS       偏移，並進入狀態 303
+
+    $預設  使用規則 264 以縮減 (address_expression)
+
+
+狀態 270
+
+  268 address_expression: INT_OPERAND .
+
+    $預設  使用規則 268 以縮減 (address_expression)
+
+
+狀態 271
+
+  249 memory_operand: LEFT_SQUARE_BRACKET address_expression . RIGHT_SQUARE_BRACKET
+
+    RIGHT_SQUARE_BRACKET  偏移，並進入狀態 304
+
+
+狀態 272
+
+  247 builtin_operand: SPECIAL_REGISTER DIMENSION_MODIFIER .
+
+    $預設  使用規則 247 以縮減 (builtin_operand)
+
+
+狀態 273
+
+  223 operand: MINUS IDENTIFIER .  [COMMA, SEMI_COLON, RIGHT_PAREN]
+  232        | MINUS IDENTIFIER . LO_OPTION
+  234        | MINUS IDENTIFIER . HI_OPTION
+  250 memory_operand: IDENTIFIER . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | IDENTIFIER . LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | IDENTIFIER . LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+
+    LO_OPTION            偏移，並進入狀態 305
+    HI_OPTION            偏移，並進入狀態 306
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 265
+
+    $預設  使用規則 223 以縮減 (operand)
+
+
+狀態 274
+
+  249 memory_operand: LEFT_SQUARE_BRACKET . address_expression RIGHT_SQUARE_BRACKET
+  264 address_expression: . IDENTIFIER
+  265                   | . IDENTIFIER LO_OPTION
+  266                   | . IDENTIFIER HI_OPTION
+  267                   | . IDENTIFIER PLUS INT_OPERAND
+  268                   | . INT_OPERAND
+
+    IDENTIFIER   偏移，並進入狀態 307
+    INT_OPERAND  偏移，並進入狀態 270
+
+    address_expression  進入狀態 271
+
+
+狀態 275
+
+  249 memory_operand: . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  250               | . IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | . IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | . IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+  253               | . MINUS memory_operand
+  253               | MINUS . memory_operand
+
+    IDENTIFIER           偏移，並進入狀態 308
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 274
+    MINUS                偏移，並進入狀態 275
+
+    memory_operand  進入狀態 277
+
+
+狀態 276
+
+  228 operand: MINUS vector_operand .
+
+    $預設  使用規則 228 以縮減 (operand)
+
+
+狀態 277
+
+  253 memory_operand: MINUS memory_operand .
+
+    $預設  使用規則 253 以縮減 (memory_operand)
+
+
+狀態 278
+
+  222 operand: EXCLAMATION IDENTIFIER .
+
+    $預設  使用規則 222 以縮減 (operand)
+
+
+狀態 279
+
+  241 vector_operand: LEFT_BRACE IDENTIFIER . COMMA IDENTIFIER RIGHT_BRACE
+  242               | LEFT_BRACE IDENTIFIER . COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | LEFT_BRACE IDENTIFIER . COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | LEFT_BRACE IDENTIFIER . RIGHT_BRACE
+
+    COMMA        偏移，並進入狀態 309
+    RIGHT_BRACE  偏移，並進入狀態 310
+
+
+狀態 280
+
+  126 instruction: opcode_spec LEFT_PAREN operand . RIGHT_PAREN $@12 COMMA operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+
+    RIGHT_PAREN  偏移，並進入狀態 311
+
+
+狀態 281
+
+  127 instruction: opcode_spec operand COMMA . LEFT_PAREN operand_list RIGHT_PAREN
+  128            | opcode_spec operand COMMA . LEFT_PAREN RIGHT_PAREN
+  219 operand_list: . operand
+  220             | . operand COMMA operand_list
+  220             | operand COMMA . operand_list
+  221 operand: . IDENTIFIER
+  222        | . EXCLAMATION IDENTIFIER
+  223        | . MINUS IDENTIFIER
+  224        | . memory_operand
+  225        | . literal_operand
+  226        | . builtin_operand
+  227        | . vector_operand
+  228        | . MINUS vector_operand
+  229        | . tex_operand
+  230        | . IDENTIFIER PLUS INT_OPERAND
+  231        | . IDENTIFIER LO_OPTION
+  232        | . MINUS IDENTIFIER LO_OPTION
+  233        | . IDENTIFIER HI_OPTION
+  234        | . MINUS IDENTIFIER HI_OPTION
+  235        | . IDENTIFIER PIPE IDENTIFIER
+  236        | . IDENTIFIER PIPE IDENTIFIER LO_OPTION
+  237        | . IDENTIFIER PIPE IDENTIFIER HI_OPTION
+  238        | . IDENTIFIER BACKSLASH IDENTIFIER
+  239        | . IDENTIFIER BACKSLASH IDENTIFIER LO_OPTION
+  240        | . IDENTIFIER BACKSLASH IDENTIFIER HI_OPTION
+  241 vector_operand: . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | . LEFT_BRACE IDENTIFIER RIGHT_BRACE
+  246 tex_operand: . LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET
+  247 builtin_operand: . SPECIAL_REGISTER DIMENSION_MODIFIER
+  248                | . SPECIAL_REGISTER
+  249 memory_operand: . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  250               | . IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | . IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | . IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+  253               | . MINUS memory_operand
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+
+    IDENTIFIER           偏移，並進入狀態 151
+    INT_OPERAND          偏移，並進入狀態 134
+    FLOAT_OPERAND        偏移，並進入狀態 135
+    DOUBLE_OPERAND       偏移，並進入狀態 136
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 152
+    SPECIAL_REGISTER     偏移，並進入狀態 153
+    MINUS                偏移，並進入狀態 154
+    EXCLAMATION          偏移，並進入狀態 155
+    LEFT_BRACE           偏移，並進入狀態 156
+    LEFT_PAREN           偏移，並進入狀態 312
+
+    operand_list     進入狀態 313
+    operand          進入狀態 314
+    vector_operand   進入狀態 160
+    tex_operand      進入狀態 161
+    builtin_operand  進入狀態 162
+    memory_operand   進入狀態 163
+    literal_operand  進入狀態 164
+
+
+狀態 282
+
+  124 instruction_statement: pred_spec instruction SEMI_COLON .
+
+    $預設  使用規則 124 以縮減 (instruction_statement)
+
+
+狀態 283
+
+   10 block_spec: MAXNTID_DIRECTIVE INT_OPERAND COMMA INT_OPERAND . COMMA INT_OPERAND
+
+    COMMA  偏移，並進入狀態 315
+
+
+狀態 284
+
+   34 param_entry: PARAM_DIRECTIVE $@10 variable_spec . ptr_spec identifier_spec
+   37 ptr_spec: . %empty  [IDENTIFIER]
+   38         | . PTR_DIRECTIVE ptr_space_spec ptr_align_spec
+   39         | . PTR_DIRECTIVE ptr_align_spec
+
+    PTR_DIRECTIVE  偏移，並進入狀態 316
+
+    $預設  使用規則 37 以縮減 (ptr_spec)
+
+    ptr_spec  進入狀態 317
+
+
+狀態 285
+
+   36 param_entry: REG_DIRECTIVE $@11 variable_spec . identifier_spec
+   70 identifier_spec: . IDENTIFIER
+   71                | . IDENTIFIER LEFT_ANGLE_BRACKET INT_OPERAND RIGHT_ANGLE_BRACKET
+   72                | . IDENTIFIER LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+   73                | . IDENTIFIER LEFT_SQUARE_BRACKET INT_OPERAND RIGHT_SQUARE_BRACKET
+
+    IDENTIFIER  偏移，並進入狀態 81
+
+    identifier_spec  進入狀態 318
+
+
+狀態 286
+
+   17 function_decl: function_decl_header LEFT_PAREN $@4 param_entry RIGHT_PAREN $@5 . function_ident_param
+   23 function_ident_param: . IDENTIFIER $@7 LEFT_PAREN $@8 param_list RIGHT_PAREN
+   24                     | . IDENTIFIER
+
+    IDENTIFIER  偏移，並進入狀態 101
+
+    function_ident_param  進入狀態 319
+
+
+狀態 287
+
+   23 function_ident_param: IDENTIFIER $@7 LEFT_PAREN $@8 . param_list RIGHT_PAREN
+   29 param_list: . %empty  [COMMA, RIGHT_PAREN]
+   30           | . param_entry
+   32           | . param_list COMMA $@9 param_entry
+   34 param_entry: . PARAM_DIRECTIVE $@10 variable_spec ptr_spec identifier_spec
+   36            | . REG_DIRECTIVE $@11 variable_spec identifier_spec
+
+    PARAM_DIRECTIVE  偏移，並進入狀態 126
+    REG_DIRECTIVE    偏移，並進入狀態 127
+
+    $預設  使用規則 29 以縮減 (param_list)
+
+    param_list   進入狀態 320
+    param_entry  進入狀態 321
+
+
+狀態 288
+
+  119 initializer_list: LEFT_BRACE initializer_list RIGHT_BRACE .
+
+    $預設  使用規則 119 以縮減 (initializer_list)
+
+
+狀態 289
+
+  121 literal_list: literal_list COMMA . literal_operand
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+
+    INT_OPERAND     偏移，並進入狀態 134
+    FLOAT_OPERAND   偏移，並進入狀態 135
+    DOUBLE_OPERAND  偏移，並進入狀態 136
+
+    literal_operand  進入狀態 322
+
+
+狀態 290
+
+  118 initializer_list: LEFT_BRACE literal_list RIGHT_BRACE .
+
+    $預設  使用規則 118 以縮減 (initializer_list)
+
+
+狀態 291
+
+  148 option_list: option option_list .
+
+    $預設  使用規則 148 以縮減 (option_list)
+
+
+狀態 292
+
+  254 twin_operand: IDENTIFIER . PLUS IDENTIFIER
+  255             | IDENTIFIER . PLUS IDENTIFIER LO_OPTION
+  256             | IDENTIFIER . PLUS IDENTIFIER HI_OPTION
+  257             | IDENTIFIER . PLUS EQUALS IDENTIFIER
+  258             | IDENTIFIER . PLUS EQUALS IDENTIFIER LO_OPTION
+  259             | IDENTIFIER . PLUS EQUALS IDENTIFIER HI_OPTION
+  260             | IDENTIFIER . PLUS EQUALS INT_OPERAND
+  264 address_expression: IDENTIFIER .  [RIGHT_SQUARE_BRACKET]
+  265                   | IDENTIFIER . LO_OPTION
+  266                   | IDENTIFIER . HI_OPTION
+  267                   | IDENTIFIER . PLUS INT_OPERAND
+
+    LO_OPTION  偏移，並進入狀態 301
+    HI_OPTION  偏移，並進入狀態 302
+    PLUS       偏移，並進入狀態 323
+
+    $預設  使用規則 264 以縮減 (address_expression)
+
+
+狀態 293
+
+  261 literal_operand: INT_OPERAND .  [RIGHT_SQUARE_BRACKET]
+  268 address_expression: INT_OPERAND .  [RIGHT_SQUARE_BRACKET]
+
+    RIGHT_SQUARE_BRACKET  使用規則 261 以縮減 (literal_operand)
+    RIGHT_SQUARE_BRACKET  [使用規則 268 以縮減 (address_expression)]
+    $預設               使用規則 261 以縮減 (literal_operand)
+
+
+狀態 294
+
+  252 memory_operand: IDENTIFIER LEFT_SQUARE_BRACKET twin_operand . RIGHT_SQUARE_BRACKET
+
+    RIGHT_SQUARE_BRACKET  偏移，並進入狀態 324
+
+
+狀態 295
+
+  251 memory_operand: IDENTIFIER LEFT_SQUARE_BRACKET literal_operand . RIGHT_SQUARE_BRACKET
+
+    RIGHT_SQUARE_BRACKET  偏移，並進入狀態 325
+
+
+狀態 296
+
+  250 memory_operand: IDENTIFIER LEFT_SQUARE_BRACKET address_expression . RIGHT_SQUARE_BRACKET
+
+    RIGHT_SQUARE_BRACKET  偏移，並進入狀態 326
+
+
+狀態 297
+
+  230 operand: IDENTIFIER PLUS INT_OPERAND .
+
+    $預設  使用規則 230 以縮減 (operand)
+
+
+狀態 298
+
+  235 operand: IDENTIFIER PIPE IDENTIFIER .  [COMMA, SEMI_COLON, RIGHT_PAREN]
+  236        | IDENTIFIER PIPE IDENTIFIER . LO_OPTION
+  237        | IDENTIFIER PIPE IDENTIFIER . HI_OPTION
+
+    LO_OPTION  偏移，並進入狀態 327
+    HI_OPTION  偏移，並進入狀態 328
+
+    $預設  使用規則 235 以縮減 (operand)
+
+
+狀態 299
+
+  238 operand: IDENTIFIER BACKSLASH IDENTIFIER .  [COMMA, SEMI_COLON, RIGHT_PAREN]
+  239        | IDENTIFIER BACKSLASH IDENTIFIER . LO_OPTION
+  240        | IDENTIFIER BACKSLASH IDENTIFIER . HI_OPTION
+
+    LO_OPTION  偏移，並進入狀態 329
+    HI_OPTION  偏移，並進入狀態 330
+
+    $預設  使用規則 238 以縮減 (operand)
+
+
+狀態 300
+
+  245 $@14: . %empty
+  246 tex_operand: LEFT_SQUARE_BRACKET IDENTIFIER COMMA . $@14 vector_operand RIGHT_SQUARE_BRACKET
+
+    $預設  使用規則 245 以縮減 ($@14)
+
+    $@14  進入狀態 331
+
+
+狀態 301
+
+  265 address_expression: IDENTIFIER LO_OPTION .
+
+    $預設  使用規則 265 以縮減 (address_expression)
+
+
+狀態 302
+
+  266 address_expression: IDENTIFIER HI_OPTION .
+
+    $預設  使用規則 266 以縮減 (address_expression)
+
+
+狀態 303
+
+  267 address_expression: IDENTIFIER PLUS . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 332
+
+
+狀態 304
+
+  249 memory_operand: LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET .
+
+    $預設  使用規則 249 以縮減 (memory_operand)
+
+
+狀態 305
+
+  232 operand: MINUS IDENTIFIER LO_OPTION .
+
+    $預設  使用規則 232 以縮減 (operand)
+
+
+狀態 306
+
+  234 operand: MINUS IDENTIFIER HI_OPTION .
+
+    $預設  使用規則 234 以縮減 (operand)
+
+
+狀態 307
+
+  264 address_expression: IDENTIFIER .  [RIGHT_SQUARE_BRACKET]
+  265                   | IDENTIFIER . LO_OPTION
+  266                   | IDENTIFIER . HI_OPTION
+  267                   | IDENTIFIER . PLUS INT_OPERAND
+
+    LO_OPTION  偏移，並進入狀態 301
+    HI_OPTION  偏移，並進入狀態 302
+    PLUS       偏移，並進入狀態 303
+
+    $預設  使用規則 264 以縮減 (address_expression)
+
+
+狀態 308
+
+  250 memory_operand: IDENTIFIER . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | IDENTIFIER . LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | IDENTIFIER . LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 265
+
+
+狀態 309
+
+  241 vector_operand: LEFT_BRACE IDENTIFIER COMMA . IDENTIFIER RIGHT_BRACE
+  242               | LEFT_BRACE IDENTIFIER COMMA . IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | LEFT_BRACE IDENTIFIER COMMA . IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+
+    IDENTIFIER  偏移，並進入狀態 333
+
+
+狀態 310
+
+  244 vector_operand: LEFT_BRACE IDENTIFIER RIGHT_BRACE .
+
+    $預設  使用規則 244 以縮減 (vector_operand)
+
+
+狀態 311
+
+  125 $@12: . %empty
+  126 instruction: opcode_spec LEFT_PAREN operand RIGHT_PAREN . $@12 COMMA operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+
+    $預設  使用規則 125 以縮減 ($@12)
+
+    $@12  進入狀態 334
+
+
+狀態 312
+
+  127 instruction: opcode_spec operand COMMA LEFT_PAREN . operand_list RIGHT_PAREN
+  128            | opcode_spec operand COMMA LEFT_PAREN . RIGHT_PAREN
+  219 operand_list: . operand
+  220             | . operand COMMA operand_list
+  221 operand: . IDENTIFIER
+  222        | . EXCLAMATION IDENTIFIER
+  223        | . MINUS IDENTIFIER
+  224        | . memory_operand
+  225        | . literal_operand
+  226        | . builtin_operand
+  227        | . vector_operand
+  228        | . MINUS vector_operand
+  229        | . tex_operand
+  230        | . IDENTIFIER PLUS INT_OPERAND
+  231        | . IDENTIFIER LO_OPTION
+  232        | . MINUS IDENTIFIER LO_OPTION
+  233        | . IDENTIFIER HI_OPTION
+  234        | . MINUS IDENTIFIER HI_OPTION
+  235        | . IDENTIFIER PIPE IDENTIFIER
+  236        | . IDENTIFIER PIPE IDENTIFIER LO_OPTION
+  237        | . IDENTIFIER PIPE IDENTIFIER HI_OPTION
+  238        | . IDENTIFIER BACKSLASH IDENTIFIER
+  239        | . IDENTIFIER BACKSLASH IDENTIFIER LO_OPTION
+  240        | . IDENTIFIER BACKSLASH IDENTIFIER HI_OPTION
+  241 vector_operand: . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | . LEFT_BRACE IDENTIFIER RIGHT_BRACE
+  246 tex_operand: . LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET
+  247 builtin_operand: . SPECIAL_REGISTER DIMENSION_MODIFIER
+  248                | . SPECIAL_REGISTER
+  249 memory_operand: . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  250               | . IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | . IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | . IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+  253               | . MINUS memory_operand
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+
+    IDENTIFIER           偏移，並進入狀態 151
+    INT_OPERAND          偏移，並進入狀態 134
+    FLOAT_OPERAND        偏移，並進入狀態 135
+    DOUBLE_OPERAND       偏移，並進入狀態 136
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 152
+    SPECIAL_REGISTER     偏移，並進入狀態 153
+    MINUS                偏移，並進入狀態 154
+    EXCLAMATION          偏移，並進入狀態 155
+    LEFT_BRACE           偏移，並進入狀態 156
+    RIGHT_PAREN          偏移，並進入狀態 335
+
+    operand_list     進入狀態 336
+    operand          進入狀態 314
+    vector_operand   進入狀態 160
+    tex_operand      進入狀態 161
+    builtin_operand  進入狀態 162
+    memory_operand   進入狀態 163
+    literal_operand  進入狀態 164
+
+
+狀態 313
+
+  220 operand_list: operand COMMA operand_list .
+
+    $預設  使用規則 220 以縮減 (operand_list)
+
+
+狀態 314
+
+  219 operand_list: operand .  [SEMI_COLON, RIGHT_PAREN]
+  220             | operand . COMMA operand_list
+
+    COMMA  偏移，並進入狀態 337
+
+    $預設  使用規則 219 以縮減 (operand_list)
+
+
+狀態 315
+
+   10 block_spec: MAXNTID_DIRECTIVE INT_OPERAND COMMA INT_OPERAND COMMA . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 338
+
+
+狀態 316
+
+   38 ptr_spec: PTR_DIRECTIVE . ptr_space_spec ptr_align_spec
+   39         | PTR_DIRECTIVE . ptr_align_spec
+   40 ptr_space_spec: . GLOBAL_DIRECTIVE
+   41               | . LOCAL_DIRECTIVE
+   42               | . SHARED_DIRECTIVE
+   43 ptr_align_spec: . ALIGN_DIRECTIVE INT_OPERAND
+
+    ALIGN_DIRECTIVE   偏移，並進入狀態 339
+    GLOBAL_DIRECTIVE  偏移，並進入狀態 340
+    LOCAL_DIRECTIVE   偏移，並進入狀態 341
+    SHARED_DIRECTIVE  偏移，並進入狀態 342
+
+    ptr_space_spec  進入狀態 343
+    ptr_align_spec  進入狀態 344
+
+
+狀態 317
+
+   34 param_entry: PARAM_DIRECTIVE $@10 variable_spec ptr_spec . identifier_spec
+   70 identifier_spec: . IDENTIFIER
+   71                | . IDENTIFIER LEFT_ANGLE_BRACKET INT_OPERAND RIGHT_ANGLE_BRACKET
+   72                | . IDENTIFIER LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+   73                | . IDENTIFIER LEFT_SQUARE_BRACKET INT_OPERAND RIGHT_SQUARE_BRACKET
+
+    IDENTIFIER  偏移，並進入狀態 81
+
+    identifier_spec  進入狀態 345
+
+
+狀態 318
+
+   36 param_entry: REG_DIRECTIVE $@11 variable_spec identifier_spec .
+
+    $預設  使用規則 36 以縮減 (param_entry)
+
+
+狀態 319
+
+   17 function_decl: function_decl_header LEFT_PAREN $@4 param_entry RIGHT_PAREN $@5 function_ident_param .
+
+    $預設  使用規則 17 以縮減 (function_decl)
+
+
+狀態 320
+
+   23 function_ident_param: IDENTIFIER $@7 LEFT_PAREN $@8 param_list . RIGHT_PAREN
+   32 param_list: param_list . COMMA $@9 param_entry
+
+    COMMA        偏移，並進入狀態 346
+    RIGHT_PAREN  偏移，並進入狀態 347
+
+
+狀態 321
+
+   30 param_list: param_entry .
+
+    $預設  使用規則 30 以縮減 (param_list)
+
+
+狀態 322
+
+  121 literal_list: literal_list COMMA literal_operand .
+
+    $預設  使用規則 121 以縮減 (literal_list)
+
+
+狀態 323
+
+  254 twin_operand: IDENTIFIER PLUS . IDENTIFIER
+  255             | IDENTIFIER PLUS . IDENTIFIER LO_OPTION
+  256             | IDENTIFIER PLUS . IDENTIFIER HI_OPTION
+  257             | IDENTIFIER PLUS . EQUALS IDENTIFIER
+  258             | IDENTIFIER PLUS . EQUALS IDENTIFIER LO_OPTION
+  259             | IDENTIFIER PLUS . EQUALS IDENTIFIER HI_OPTION
+  260             | IDENTIFIER PLUS . EQUALS INT_OPERAND
+  267 address_expression: IDENTIFIER PLUS . INT_OPERAND
+
+    IDENTIFIER   偏移，並進入狀態 348
+    INT_OPERAND  偏移，並進入狀態 332
+    EQUALS       偏移，並進入狀態 349
+
+
+狀態 324
+
+  252 memory_operand: IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET .
+
+    $預設  使用規則 252 以縮減 (memory_operand)
+
+
+狀態 325
+
+  251 memory_operand: IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET .
+
+    $預設  使用規則 251 以縮減 (memory_operand)
+
+
+狀態 326
+
+  250 memory_operand: IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET .
+
+    $預設  使用規則 250 以縮減 (memory_operand)
+
+
+狀態 327
+
+  236 operand: IDENTIFIER PIPE IDENTIFIER LO_OPTION .
+
+    $預設  使用規則 236 以縮減 (operand)
+
+
+狀態 328
+
+  237 operand: IDENTIFIER PIPE IDENTIFIER HI_OPTION .
+
+    $預設  使用規則 237 以縮減 (operand)
+
+
+狀態 329
+
+  239 operand: IDENTIFIER BACKSLASH IDENTIFIER LO_OPTION .
+
+    $預設  使用規則 239 以縮減 (operand)
+
+
+狀態 330
+
+  240 operand: IDENTIFIER BACKSLASH IDENTIFIER HI_OPTION .
+
+    $預設  使用規則 240 以縮減 (operand)
+
+
+狀態 331
+
+  241 vector_operand: . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | . LEFT_BRACE IDENTIFIER RIGHT_BRACE
+  246 tex_operand: LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 . vector_operand RIGHT_SQUARE_BRACKET
+
+    LEFT_BRACE  偏移，並進入狀態 156
+
+    vector_operand  進入狀態 350
+
+
+狀態 332
+
+  267 address_expression: IDENTIFIER PLUS INT_OPERAND .
+
+    $預設  使用規則 267 以縮減 (address_expression)
+
+
+狀態 333
+
+  241 vector_operand: LEFT_BRACE IDENTIFIER COMMA IDENTIFIER . RIGHT_BRACE
+  242               | LEFT_BRACE IDENTIFIER COMMA IDENTIFIER . COMMA IDENTIFIER RIGHT_BRACE
+  243               | LEFT_BRACE IDENTIFIER COMMA IDENTIFIER . COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+
+    COMMA        偏移，並進入狀態 351
+    RIGHT_BRACE  偏移，並進入狀態 352
+
+
+狀態 334
+
+  126 instruction: opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 . COMMA operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+
+    COMMA  偏移，並進入狀態 353
+
+
+狀態 335
+
+  128 instruction: opcode_spec operand COMMA LEFT_PAREN RIGHT_PAREN .
+
+    $預設  使用規則 128 以縮減 (instruction)
+
+
+狀態 336
+
+  127 instruction: opcode_spec operand COMMA LEFT_PAREN operand_list . RIGHT_PAREN
+
+    RIGHT_PAREN  偏移，並進入狀態 354
+
+
+狀態 337
+
+  219 operand_list: . operand
+  220             | . operand COMMA operand_list
+  220             | operand COMMA . operand_list
+  221 operand: . IDENTIFIER
+  222        | . EXCLAMATION IDENTIFIER
+  223        | . MINUS IDENTIFIER
+  224        | . memory_operand
+  225        | . literal_operand
+  226        | . builtin_operand
+  227        | . vector_operand
+  228        | . MINUS vector_operand
+  229        | . tex_operand
+  230        | . IDENTIFIER PLUS INT_OPERAND
+  231        | . IDENTIFIER LO_OPTION
+  232        | . MINUS IDENTIFIER LO_OPTION
+  233        | . IDENTIFIER HI_OPTION
+  234        | . MINUS IDENTIFIER HI_OPTION
+  235        | . IDENTIFIER PIPE IDENTIFIER
+  236        | . IDENTIFIER PIPE IDENTIFIER LO_OPTION
+  237        | . IDENTIFIER PIPE IDENTIFIER HI_OPTION
+  238        | . IDENTIFIER BACKSLASH IDENTIFIER
+  239        | . IDENTIFIER BACKSLASH IDENTIFIER LO_OPTION
+  240        | . IDENTIFIER BACKSLASH IDENTIFIER HI_OPTION
+  241 vector_operand: . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | . LEFT_BRACE IDENTIFIER RIGHT_BRACE
+  246 tex_operand: . LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET
+  247 builtin_operand: . SPECIAL_REGISTER DIMENSION_MODIFIER
+  248                | . SPECIAL_REGISTER
+  249 memory_operand: . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  250               | . IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | . IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | . IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+  253               | . MINUS memory_operand
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+
+    IDENTIFIER           偏移，並進入狀態 151
+    INT_OPERAND          偏移，並進入狀態 134
+    FLOAT_OPERAND        偏移，並進入狀態 135
+    DOUBLE_OPERAND       偏移，並進入狀態 136
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 152
+    SPECIAL_REGISTER     偏移，並進入狀態 153
+    MINUS                偏移，並進入狀態 154
+    EXCLAMATION          偏移，並進入狀態 155
+    LEFT_BRACE           偏移，並進入狀態 156
+
+    operand_list     進入狀態 313
+    operand          進入狀態 314
+    vector_operand   進入狀態 160
+    tex_operand      進入狀態 161
+    builtin_operand  進入狀態 162
+    memory_operand   進入狀態 163
+    literal_operand  進入狀態 164
+
+
+狀態 338
+
+   10 block_spec: MAXNTID_DIRECTIVE INT_OPERAND COMMA INT_OPERAND COMMA INT_OPERAND .
+
+    $預設  使用規則 10 以縮減 (block_spec)
+
+
+狀態 339
+
+   43 ptr_align_spec: ALIGN_DIRECTIVE . INT_OPERAND
+
+    INT_OPERAND  偏移，並進入狀態 355
+
+
+狀態 340
+
+   40 ptr_space_spec: GLOBAL_DIRECTIVE .
+
+    $預設  使用規則 40 以縮減 (ptr_space_spec)
+
+
+狀態 341
+
+   41 ptr_space_spec: LOCAL_DIRECTIVE .
+
+    $預設  使用規則 41 以縮減 (ptr_space_spec)
+
+
+狀態 342
+
+   42 ptr_space_spec: SHARED_DIRECTIVE .
+
+    $預設  使用規則 42 以縮減 (ptr_space_spec)
+
+
+狀態 343
+
+   38 ptr_spec: PTR_DIRECTIVE ptr_space_spec . ptr_align_spec
+   43 ptr_align_spec: . ALIGN_DIRECTIVE INT_OPERAND
+
+    ALIGN_DIRECTIVE  偏移，並進入狀態 339
+
+    ptr_align_spec  進入狀態 356
+
+
+狀態 344
+
+   39 ptr_spec: PTR_DIRECTIVE ptr_align_spec .
+
+    $預設  使用規則 39 以縮減 (ptr_spec)
+
+
+狀態 345
+
+   34 param_entry: PARAM_DIRECTIVE $@10 variable_spec ptr_spec identifier_spec .
+
+    $預設  使用規則 34 以縮減 (param_entry)
+
+
+狀態 346
+
+   31 $@9: . %empty
+   32 param_list: param_list COMMA . $@9 param_entry
+
+    $預設  使用規則 31 以縮減 ($@9)
+
+    $@9  進入狀態 357
+
+
+狀態 347
+
+   23 function_ident_param: IDENTIFIER $@7 LEFT_PAREN $@8 param_list RIGHT_PAREN .
+
+    $預設  使用規則 23 以縮減 (function_ident_param)
+
+
+狀態 348
+
+  254 twin_operand: IDENTIFIER PLUS IDENTIFIER .  [RIGHT_SQUARE_BRACKET]
+  255             | IDENTIFIER PLUS IDENTIFIER . LO_OPTION
+  256             | IDENTIFIER PLUS IDENTIFIER . HI_OPTION
+
+    LO_OPTION  偏移，並進入狀態 358
+    HI_OPTION  偏移，並進入狀態 359
+
+    $預設  使用規則 254 以縮減 (twin_operand)
+
+
+狀態 349
+
+  257 twin_operand: IDENTIFIER PLUS EQUALS . IDENTIFIER
+  258             | IDENTIFIER PLUS EQUALS . IDENTIFIER LO_OPTION
+  259             | IDENTIFIER PLUS EQUALS . IDENTIFIER HI_OPTION
+  260             | IDENTIFIER PLUS EQUALS . INT_OPERAND
+
+    IDENTIFIER   偏移，並進入狀態 360
+    INT_OPERAND  偏移，並進入狀態 361
+
+
+狀態 350
+
+  246 tex_operand: LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 vector_operand . RIGHT_SQUARE_BRACKET
+
+    RIGHT_SQUARE_BRACKET  偏移，並進入狀態 362
+
+
+狀態 351
+
+  242 vector_operand: LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA . IDENTIFIER RIGHT_BRACE
+  243               | LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA . IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+
+    IDENTIFIER  偏移，並進入狀態 363
+
+
+狀態 352
+
+  241 vector_operand: LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE .
+
+    $預設  使用規則 241 以縮減 (vector_operand)
+
+
+狀態 353
+
+  126 instruction: opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 COMMA . operand COMMA LEFT_PAREN operand_list RIGHT_PAREN
+  221 operand: . IDENTIFIER
+  222        | . EXCLAMATION IDENTIFIER
+  223        | . MINUS IDENTIFIER
+  224        | . memory_operand
+  225        | . literal_operand
+  226        | . builtin_operand
+  227        | . vector_operand
+  228        | . MINUS vector_operand
+  229        | . tex_operand
+  230        | . IDENTIFIER PLUS INT_OPERAND
+  231        | . IDENTIFIER LO_OPTION
+  232        | . MINUS IDENTIFIER LO_OPTION
+  233        | . IDENTIFIER HI_OPTION
+  234        | . MINUS IDENTIFIER HI_OPTION
+  235        | . IDENTIFIER PIPE IDENTIFIER
+  236        | . IDENTIFIER PIPE IDENTIFIER LO_OPTION
+  237        | . IDENTIFIER PIPE IDENTIFIER HI_OPTION
+  238        | . IDENTIFIER BACKSLASH IDENTIFIER
+  239        | . IDENTIFIER BACKSLASH IDENTIFIER LO_OPTION
+  240        | . IDENTIFIER BACKSLASH IDENTIFIER HI_OPTION
+  241 vector_operand: . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | . LEFT_BRACE IDENTIFIER RIGHT_BRACE
+  246 tex_operand: . LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET
+  247 builtin_operand: . SPECIAL_REGISTER DIMENSION_MODIFIER
+  248                | . SPECIAL_REGISTER
+  249 memory_operand: . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  250               | . IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | . IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | . IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+  253               | . MINUS memory_operand
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+
+    IDENTIFIER           偏移，並進入狀態 151
+    INT_OPERAND          偏移，並進入狀態 134
+    FLOAT_OPERAND        偏移，並進入狀態 135
+    DOUBLE_OPERAND       偏移，並進入狀態 136
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 152
+    SPECIAL_REGISTER     偏移，並進入狀態 153
+    MINUS                偏移，並進入狀態 154
+    EXCLAMATION          偏移，並進入狀態 155
+    LEFT_BRACE           偏移，並進入狀態 156
+
+    operand          進入狀態 364
+    vector_operand   進入狀態 160
+    tex_operand      進入狀態 161
+    builtin_operand  進入狀態 162
+    memory_operand   進入狀態 163
+    literal_operand  進入狀態 164
+
+
+狀態 354
+
+  127 instruction: opcode_spec operand COMMA LEFT_PAREN operand_list RIGHT_PAREN .
+
+    $預設  使用規則 127 以縮減 (instruction)
+
+
+狀態 355
+
+   43 ptr_align_spec: ALIGN_DIRECTIVE INT_OPERAND .
+
+    $預設  使用規則 43 以縮減 (ptr_align_spec)
+
+
+狀態 356
+
+   38 ptr_spec: PTR_DIRECTIVE ptr_space_spec ptr_align_spec .
+
+    $預設  使用規則 38 以縮減 (ptr_spec)
+
+
+狀態 357
+
+   32 param_list: param_list COMMA $@9 . param_entry
+   34 param_entry: . PARAM_DIRECTIVE $@10 variable_spec ptr_spec identifier_spec
+   36            | . REG_DIRECTIVE $@11 variable_spec identifier_spec
+
+    PARAM_DIRECTIVE  偏移，並進入狀態 126
+    REG_DIRECTIVE    偏移，並進入狀態 127
+
+    param_entry  進入狀態 365
+
+
+狀態 358
+
+  255 twin_operand: IDENTIFIER PLUS IDENTIFIER LO_OPTION .
+
+    $預設  使用規則 255 以縮減 (twin_operand)
+
+
+狀態 359
+
+  256 twin_operand: IDENTIFIER PLUS IDENTIFIER HI_OPTION .
+
+    $預設  使用規則 256 以縮減 (twin_operand)
+
+
+狀態 360
+
+  257 twin_operand: IDENTIFIER PLUS EQUALS IDENTIFIER .  [RIGHT_SQUARE_BRACKET]
+  258             | IDENTIFIER PLUS EQUALS IDENTIFIER . LO_OPTION
+  259             | IDENTIFIER PLUS EQUALS IDENTIFIER . HI_OPTION
+
+    LO_OPTION  偏移，並進入狀態 366
+    HI_OPTION  偏移，並進入狀態 367
+
+    $預設  使用規則 257 以縮減 (twin_operand)
+
+
+狀態 361
+
+  260 twin_operand: IDENTIFIER PLUS EQUALS INT_OPERAND .
+
+    $預設  使用規則 260 以縮減 (twin_operand)
+
+
+狀態 362
+
+  246 tex_operand: LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET .
+
+    $預設  使用規則 246 以縮減 (tex_operand)
+
+
+狀態 363
+
+  242 vector_operand: LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER . RIGHT_BRACE
+  243               | LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER . COMMA IDENTIFIER RIGHT_BRACE
+
+    COMMA        偏移，並進入狀態 368
+    RIGHT_BRACE  偏移，並進入狀態 369
+
+
+狀態 364
+
+  126 instruction: opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 COMMA operand . COMMA LEFT_PAREN operand_list RIGHT_PAREN
+
+    COMMA  偏移，並進入狀態 370
+
+
+狀態 365
+
+   32 param_list: param_list COMMA $@9 param_entry .
+
+    $預設  使用規則 32 以縮減 (param_list)
+
+
+狀態 366
+
+  258 twin_operand: IDENTIFIER PLUS EQUALS IDENTIFIER LO_OPTION .
+
+    $預設  使用規則 258 以縮減 (twin_operand)
+
+
+狀態 367
+
+  259 twin_operand: IDENTIFIER PLUS EQUALS IDENTIFIER HI_OPTION .
+
+    $預設  使用規則 259 以縮減 (twin_operand)
+
+
+狀態 368
+
+  243 vector_operand: LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA . IDENTIFIER RIGHT_BRACE
+
+    IDENTIFIER  偏移，並進入狀態 371
+
+
+狀態 369
+
+  242 vector_operand: LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE .
+
+    $預設  使用規則 242 以縮減 (vector_operand)
+
+
+狀態 370
+
+  126 instruction: opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 COMMA operand COMMA . LEFT_PAREN operand_list RIGHT_PAREN
+
+    LEFT_PAREN  偏移，並進入狀態 372
+
+
+狀態 371
+
+  243 vector_operand: LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER . RIGHT_BRACE
+
+    RIGHT_BRACE  偏移，並進入狀態 373
+
+
+狀態 372
+
+  126 instruction: opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 COMMA operand COMMA LEFT_PAREN . operand_list RIGHT_PAREN
+  219 operand_list: . operand
+  220             | . operand COMMA operand_list
+  221 operand: . IDENTIFIER
+  222        | . EXCLAMATION IDENTIFIER
+  223        | . MINUS IDENTIFIER
+  224        | . memory_operand
+  225        | . literal_operand
+  226        | . builtin_operand
+  227        | . vector_operand
+  228        | . MINUS vector_operand
+  229        | . tex_operand
+  230        | . IDENTIFIER PLUS INT_OPERAND
+  231        | . IDENTIFIER LO_OPTION
+  232        | . MINUS IDENTIFIER LO_OPTION
+  233        | . IDENTIFIER HI_OPTION
+  234        | . MINUS IDENTIFIER HI_OPTION
+  235        | . IDENTIFIER PIPE IDENTIFIER
+  236        | . IDENTIFIER PIPE IDENTIFIER LO_OPTION
+  237        | . IDENTIFIER PIPE IDENTIFIER HI_OPTION
+  238        | . IDENTIFIER BACKSLASH IDENTIFIER
+  239        | . IDENTIFIER BACKSLASH IDENTIFIER LO_OPTION
+  240        | . IDENTIFIER BACKSLASH IDENTIFIER HI_OPTION
+  241 vector_operand: . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  242               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  243               | . LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE
+  244               | . LEFT_BRACE IDENTIFIER RIGHT_BRACE
+  246 tex_operand: . LEFT_SQUARE_BRACKET IDENTIFIER COMMA $@14 vector_operand RIGHT_SQUARE_BRACKET
+  247 builtin_operand: . SPECIAL_REGISTER DIMENSION_MODIFIER
+  248                | . SPECIAL_REGISTER
+  249 memory_operand: . LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  250               | . IDENTIFIER LEFT_SQUARE_BRACKET address_expression RIGHT_SQUARE_BRACKET
+  251               | . IDENTIFIER LEFT_SQUARE_BRACKET literal_operand RIGHT_SQUARE_BRACKET
+  252               | . IDENTIFIER LEFT_SQUARE_BRACKET twin_operand RIGHT_SQUARE_BRACKET
+  253               | . MINUS memory_operand
+  261 literal_operand: . INT_OPERAND
+  262                | . FLOAT_OPERAND
+  263                | . DOUBLE_OPERAND
+
+    IDENTIFIER           偏移，並進入狀態 151
+    INT_OPERAND          偏移，並進入狀態 134
+    FLOAT_OPERAND        偏移，並進入狀態 135
+    DOUBLE_OPERAND       偏移，並進入狀態 136
+    LEFT_SQUARE_BRACKET  偏移，並進入狀態 152
+    SPECIAL_REGISTER     偏移，並進入狀態 153
+    MINUS                偏移，並進入狀態 154
+    EXCLAMATION          偏移，並進入狀態 155
+    LEFT_BRACE           偏移，並進入狀態 156
+
+    operand_list     進入狀態 374
+    operand          進入狀態 314
+    vector_operand   進入狀態 160
+    tex_operand      進入狀態 161
+    builtin_operand  進入狀態 162
+    memory_operand   進入狀態 163
+    literal_operand  進入狀態 164
+
+
+狀態 373
+
+  243 vector_operand: LEFT_BRACE IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER RIGHT_BRACE .
+
+    $預設  使用規則 243 以縮減 (vector_operand)
+
+
+狀態 374
+
+  126 instruction: opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 COMMA operand COMMA LEFT_PAREN operand_list . RIGHT_PAREN
+
+    RIGHT_PAREN  偏移，並進入狀態 375
+
+
+狀態 375
+
+  126 instruction: opcode_spec LEFT_PAREN operand RIGHT_PAREN $@12 COMMA operand COMMA LEFT_PAREN operand_list RIGHT_PAREN .
+
+    $預設  使用規則 126 以縮減 (instruction)

@@ -1,0 +1,3462 @@
+終端機在文法中未使用
+
+   DOTSAT
+   PTXHEADER
+   ELFHEADER
+   INFOARCHVERSION
+   INFOCODEVERSION_HEADER
+   INFOCODEVERSION
+   INFOPRODUCER
+   INFOHOST
+   INFOCOMPILESIZE_HEADER
+   INFOCOMPILESIZE
+   INFOIDENTIFIER
+
+
+文法
+
+    0 $accept: program $end
+
+    1 program: program sassCode
+    2        | sassCode
+
+    3 sassCode: VERSIONHEADER IDENTIFIER NEWLINE functionList
+    4         | NEWLINE VERSIONHEADER IDENTIFIER NEWLINE functionList
+    5         | VERSIONHEADER IDENTIFIER NEWLINE
+
+    6 functionList: functionList function
+    7             | function
+
+    8 $@1: %empty
+
+    9 function: FUNCTIONHEADER IDENTIFIER $@1 statementList NEWLINE
+
+   10 statementList: statementList statement NEWLINE
+   11              | statementList statement SEMICOLON NEWLINE
+   12              | statement NEWLINE
+   13              | statement SEMICOLON NEWLINE
+   14              | NEWLINE
+
+   15 $@2: %empty
+
+   16 statement: $@2 instructionLabel statementend
+
+   17 statementend: instructionHex assemblyInstruction
+   18             | %empty
+
+   19 instructionHex: INSTHEX
+
+   20 instructionLabel: LABELSTART LABEL LABELEND
+
+   21 assemblyInstruction: baseInstruction modifierList operandList
+
+   22 baseInstruction: simpleInstructions
+   23                | branchInstructions
+   24                | GRED DOT simpleInstructions
+   25                | GATOM DOT simpleInstructions
+   26                | pbkInstruction
+
+   27 simpleInstructions: ADA
+   28                   | AND
+   29                   | ANDS
+   30                   | BRX
+   31                   | COS
+   32                   | DADD
+   33                   | DMIN
+   34                   | DMAX
+   35                   | DFMA
+   36                   | DMUL
+   37                   | EX2
+   38                   | F2F
+   39                   | F2I
+   40                   | FADD
+   41                   | FADD32
+   42                   | FADD32I
+   43                   | FMAD
+   44                   | FMAD32I
+   45                   | FMUL
+   46                   | FMUL32
+   47                   | FMUL32I
+   48                   | FSET
+   49                   | DSET
+   50                   | G2R
+   51                   | GLD
+   52                   | GST
+   53                   | I2F
+   54                   | I2I
+   55                   | IADD
+   56                   | IADD32
+   57                   | IADD32I
+   58                   | IMAD
+   59                   | ISAD
+   60                   | IMAD24
+   61                   | IMAD32I
+   62                   | IMAD32
+   63                   | IMUL
+   64                   | IMUL24
+   65                   | IMUL24H
+   66                   | IMULS24
+   67                   | IMUL32
+   68                   | IMUL32S24
+   69                   | IMUL32I
+   70                   | IMUL32I24
+   71                   | IMUL32IS24
+   72                   | IMUL32U24
+   73                   | ISET
+   74                   | LG2
+   75                   | LLD
+   76                   | LST
+   77                   | MOV
+   78                   | MOV32
+   79                   | MVC
+   80                   | MVI
+   81                   | NOP
+   82                   | NOT
+   83                   | NOTS
+   84                   | OR
+   85                   | ORS
+   86                   | R2A
+   87                   | R2G
+   88                   | R2GU16U8
+   89                   | RCP
+   90                   | RCP32
+   91                   | RET
+   92                   | RRO
+   93                   | RSQ
+   94                   | SHL
+   95                   | SHR
+   96                   | SIN
+   97                   | SSY
+   98                   | XOR
+   99                   | XORS
+  100                   | S2R
+  101                   | SASS_LD
+  102                   | STS
+  103                   | LDS
+  104                   | SASS_ST
+  105                   | EXIT
+  106                   | BAR
+  107                   | IMIN
+  108                   | IMAX
+  109                   | A2R
+  110                   | FMAX
+  111                   | FMIN
+  112                   | TEX
+  113                   | TEX32
+  114                   | C2R
+  115                   | BRK
+  116                   | R2C
+  117                   | IADDCARRY
+  118                   | VOTE
+
+  119 $@3: %empty
+
+  120 pbkInstruction: PBK $@3 HEXLITERAL
+
+  121 $@4: %empty
+
+  122 branchInstructions: BRA $@4 instructionPredicate HEXLITERAL
+
+  123 $@5: %empty
+
+  124 branchInstructions: BRA $@5 HEXLITERAL
+
+  125 $@6: %empty
+
+  126 branchInstructions: CAL $@6 HEXLITERAL
+
+  127 $@7: %empty
+
+  128 branchInstructions: CAL $@7 DOTNOINC HEXLITERAL
+
+  129 modifierList: modifier modifierList
+  130             | %empty
+
+  131 modifier: opTypes
+  132         | DOTBEXT
+  133         | DOTS
+  134         | DOTSFU
+  135         | DOTTRUNC
+  136         | DOTCEIL
+  137         | DOTFLOOR
+  138         | DOTX
+  139         | DOTE
+  140         | DOTRED
+  141         | DOTPOPC
+  142         | DOTIR
+  143         | DOTUN
+  144         | DOTNODEP
+  145         | DOTANY
+  146         | DOTALL
+
+  147 opTypes: DOTF16
+  148        | DOTF32
+  149        | DOTF64
+  150        | DOTS8
+  151        | DOTS16
+  152        | DOTS32
+  153        | DOTS64
+  154        | DOTS128
+  155        | DOTU8
+  156        | DOTU16
+  157        | DOTU32
+  158        | DOTU24
+  159        | DOTU64
+  160        | DOTHI
+
+  161 $@8: %empty
+
+  162 operandList: operandList $@8 operand
+  163            | %empty
+
+  164 operand: registerlocation
+  165        | PIPE registerlocation PIPE
+  166        | TILDE registerlocation
+  167        | LEFTBRACKET instructionPredicate RIGHTBRACKET
+  168        | memorylocation opTypes
+  169        | memorylocation
+  170        | immediateValue
+  171        | extraModifier
+  172        | operandPredicate
+  173        | preOperand
+
+  174 registerlocation: REGISTER regMod
+  175                 | OSQBRACKET REGISTER CSQBRACKET
+  176                 | REGISTERLO
+  177                 | REGISTERHI
+  178                 | SREGISTER
+  179                 | OFFSETREGISTER
+  180                 | PREDREGISTER PREDREGISTER2
+  181                 | PREDREGISTER REGISTER
+
+  182 regMod: DOTCC
+  183       | %empty
+
+  184 memorylocation: SMEMLOCATION
+  185               | ABSSMEMLOCATION
+  186               | GMEMLOCATION
+  187               | CMEMLOCATION
+  188               | LMEMLOCATION
+
+  189 immediateValue: IDENTIFIER
+  190               | HEXLITERAL
+
+  191 extraModifier: EQ
+  192              | EQU
+  193              | GE
+  194              | GEU
+  195              | GT
+  196              | GTU
+  197              | LE
+  198              | LEU
+  199              | LT
+  200              | LTU
+  201              | NE
+  202              | NEU
+
+  203 instructionPredicate: PREDREGISTER3 predicateModifier
+  204                     | PREDREGISTER3
+
+  205 operandPredicate: PREDREGISTER3 predicateModifier
+  206                 | PREDREGISTER3
+
+  207 preOperand: EX2
+  208           | SIN
+  209           | COS
+
+  210 predicateModifier: DOTEQ
+  211                  | DOTEQU
+  212                  | DOTFALSE
+  213                  | DOTGE
+  214                  | DOTGEU
+  215                  | DOTGT
+  216                  | DOTGTU
+  217                  | DOTLE
+  218                  | DOTLEU
+  219                  | DOTLT
+  220                  | DOTLTU
+  221                  | DOTNE
+  222                  | DOTNEU
+  223                  | DOTNSF
+  224                  | DOTSF
+  225                  | DOTCARRY
+
+
+終結語詞，附有它們出現處的規則
+
+$end (0) 0
+error (256)
+BAR (258) 106
+ADA (259) 27
+AND (260) 28
+ANDS (261) 29
+BRA (262) 122 124
+BRX (263) 30
+CAL (264) 126 128
+COS (265) 31 209
+DADD (266) 32
+DMIN (267) 33
+DMAX (268) 34
+DFMA (269) 35
+DMUL (270) 36
+EX2 (271) 37 207
+F2F (272) 38
+F2I (273) 39
+FADD (274) 40
+FADD32 (275) 41
+FADD32I (276) 42
+FMAD (277) 43
+FMAD32I (278) 44
+FMUL (279) 45
+FMUL32 (280) 46
+FMUL32I (281) 47
+FSET (282) 48
+DSET (283) 49
+G2R (284) 50
+GLD (285) 51
+GST (286) 52
+I2F (287) 53
+I2I (288) 54
+IADD (289) 55
+IADD32 (290) 56
+IADD32I (291) 57
+IMAD (292) 58
+ISAD (293) 59
+IMAD24 (294) 60
+IMAD32I (295) 61
+IMAD32 (296) 62
+IADDCARRY (297) 117
+IMUL (298) 63
+IMUL24 (299) 64
+IMUL24H (300) 65
+IMULS24 (301) 66
+IMUL32 (302) 67
+IMUL32S24 (303) 68
+IMUL32U24 (304) 72
+IMUL32I (305) 69
+IMUL32I24 (306) 70
+IMUL32IS24 (307) 71
+ISET (308) 73
+LG2 (309) 74
+LLD (310) 75
+LST (311) 76
+MOV (312) 77
+MOV32 (313) 78
+MVC (314) 79
+MVI (315) 80
+NOP (316) 81
+NOT (317) 82
+NOTS (318) 83
+OR (319) 84
+ORS (320) 85
+R2A (321) 86
+R2G (322) 87
+R2GU16U8 (323) 88
+RCP (324) 89
+RCP32 (325) 90
+RET (326) 91
+RRO (327) 92
+RSQ (328) 93
+SIN (329) 96 208
+SHL (330) 94
+SHR (331) 95
+SSY (332) 97
+XOR (333) 98
+XORS (334) 99
+S2R (335) 100
+SASS_LD (336) 101
+STS (337) 102
+LDS (338) 103
+SASS_ST (339) 104
+IMIN (340) 107
+IMAX (341) 108
+A2R (342) 109
+FMAX (343) 110
+FMIN (344) 111
+TEX (345) 112
+TEX32 (346) 113
+C2R (347) 114
+EXIT (348) 105
+GRED (349) 24
+PBK (350) 120
+BRK (351) 115
+R2C (352) 116
+GATOM (353) 25
+VOTE (354) 118
+EQ (355) 191
+EQU (356) 192
+GE (357) 193
+GEU (358) 194
+GT (359) 195
+GTU (360) 196
+LE (361) 197
+LEU (362) 198
+LT (363) 199
+LTU (364) 200
+NE (365) 201
+NEU (366) 202
+DOTBEXT (367) 132
+DOTS (368) 133
+DOTSFU (369) 134
+DOTTRUNC (370) 135
+DOTCEIL (371) 136
+DOTFLOOR (372) 137
+DOTIR (373) 142
+DOTUN (374) 143
+DOTNODEP (375) 144
+DOTSAT (376)
+DOTANY (377) 145
+DOTALL (378) 146
+DOTF16 (379) 147
+DOTF32 (380) 148
+DOTF64 (381) 149
+DOTS8 (382) 150
+DOTS16 (383) 151
+DOTS32 (384) 152
+DOTS64 (385) 153
+DOTS128 (386) 154
+DOTU8 (387) 155
+DOTU16 (388) 156
+DOTU32 (389) 157
+DOTU24 (390) 158
+DOTU64 (391) 159
+DOTHI (392) 160
+DOTNOINC (393) 128
+DOTEQ (394) 210
+DOTEQU (395) 211
+DOTFALSE (396) 212
+DOTGE (397) 213
+DOTGEU (398) 214
+DOTGT (399) 215
+DOTGTU (400) 216
+DOTLE (401) 217
+DOTLEU (402) 218
+DOTLT (403) 219
+DOTLTU (404) 220
+DOTNE (405) 221
+DOTNEU (406) 222
+DOTNSF (407) 223
+DOTSF (408) 224
+DOTCARRY (409) 225
+DOTCC (410) 182
+DOTX (411) 138
+DOTE (412) 139
+DOTRED (413) 140
+DOTPOPC (414) 141
+REGISTER (415) 174 175 181
+REGISTERLO (416) 176
+REGISTERHI (417) 177
+OFFSETREGISTER (418) 179
+PREDREGISTER (419) 180 181
+PREDREGISTER2 (420) 180
+PREDREGISTER3 (421) 203 204 205 206
+SREGISTER (422) 178
+VERSIONHEADER (423) 3 4 5
+FUNCTIONHEADER (424) 9
+SMEMLOCATION (425) 184
+ABSSMEMLOCATION (426) 185
+GMEMLOCATION (427) 186
+CMEMLOCATION (428) 187
+LMEMLOCATION (429) 188
+IDENTIFIER (430) 3 4 5 9 189
+HEXLITERAL (431) 120 122 124 126 128 190
+LEFTBRACKET (432) 167
+RIGHTBRACKET (433) 167
+PIPE (434) 165
+TILDE (435) 166
+NEWLINE (436) 3 4 5 9 10 11 12 13 14
+SEMICOLON (437) 11 13
+LABEL (438) 20
+LABELSTART (439) 20
+LABELEND (440) 20
+PTXHEADER (441)
+ELFHEADER (442)
+INFOARCHVERSION (443)
+INFOCODEVERSION_HEADER (444)
+INFOCODEVERSION (445)
+INFOPRODUCER (446)
+INFOHOST (447)
+INFOCOMPILESIZE_HEADER (448)
+INFOCOMPILESIZE (449)
+INFOIDENTIFIER (450)
+DOT (451) 24 25
+INSTHEX (452) 19
+OSQBRACKET (453) 175
+CSQBRACKET (454) 175
+
+
+非終結語詞，附有它們出現處的規則
+
+$accept (200)
+    於左側： 0
+program (201)
+    於左側： 1 2, 於右側： 0 1
+sassCode (202)
+    於左側： 3 4 5, 於右側： 1 2
+functionList (203)
+    於左側： 6 7, 於右側： 3 4 6
+function (204)
+    於左側： 9, 於右側： 6 7
+$@1 (205)
+    於左側： 8, 於右側： 9
+statementList (206)
+    於左側： 10 11 12 13 14, 於右側： 9 10 11
+statement (207)
+    於左側： 16, 於右側： 10 11 12 13
+$@2 (208)
+    於左側： 15, 於右側： 16
+statementend (209)
+    於左側： 17 18, 於右側： 16
+instructionHex (210)
+    於左側： 19, 於右側： 17
+instructionLabel (211)
+    於左側： 20, 於右側： 16
+assemblyInstruction (212)
+    於左側： 21, 於右側： 17
+baseInstruction (213)
+    於左側： 22 23 24 25 26, 於右側： 21
+simpleInstructions (214)
+    於左側： 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43
+    44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+    65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85
+    86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105
+    106 107 108 109 110 111 112 113 114 115 116 117 118, 於右側：
+    22 24 25
+pbkInstruction (215)
+    於左側： 120, 於右側： 26
+$@3 (216)
+    於左側： 119, 於右側： 120
+branchInstructions (217)
+    於左側： 122 124 126 128, 於右側： 23
+$@4 (218)
+    於左側： 121, 於右側： 122
+$@5 (219)
+    於左側： 123, 於右側： 124
+$@6 (220)
+    於左側： 125, 於右側： 126
+$@7 (221)
+    於左側： 127, 於右側： 128
+modifierList (222)
+    於左側： 129 130, 於右側： 21 129
+modifier (223)
+    於左側： 131 132 133 134 135 136 137 138 139 140 141 142 143
+    144 145 146, 於右側： 129
+opTypes (224)
+    於左側： 147 148 149 150 151 152 153 154 155 156 157 158 159
+    160, 於右側： 131 168
+operandList (225)
+    於左側： 162 163, 於右側： 21 162
+$@8 (226)
+    於左側： 161, 於右側： 162
+operand (227)
+    於左側： 164 165 166 167 168 169 170 171 172 173, 於右側：
+    162
+registerlocation (228)
+    於左側： 174 175 176 177 178 179 180 181, 於右側： 164
+    165 166
+regMod (229)
+    於左側： 182 183, 於右側： 174
+memorylocation (230)
+    於左側： 184 185 186 187 188, 於右側： 168 169
+immediateValue (231)
+    於左側： 189 190, 於右側： 170
+extraModifier (232)
+    於左側： 191 192 193 194 195 196 197 198 199 200 201 202, 於右側：
+    171
+instructionPredicate (233)
+    於左側： 203 204, 於右側： 122 167
+operandPredicate (234)
+    於左側： 205 206, 於右側： 172
+preOperand (235)
+    於左側： 207 208 209, 於右側： 173
+predicateModifier (236)
+    於左側： 210 211 212 213 214 215 216 217 218 219 220 221 222
+    223 224 225, 於右側： 203 205
+
+
+狀態 0
+
+    0 $accept: . program $end
+    1 program: . program sassCode
+    2        | . sassCode
+    3 sassCode: . VERSIONHEADER IDENTIFIER NEWLINE functionList
+    4         | . NEWLINE VERSIONHEADER IDENTIFIER NEWLINE functionList
+    5         | . VERSIONHEADER IDENTIFIER NEWLINE
+
+    VERSIONHEADER  偏移，並進入狀態 1
+    NEWLINE        偏移，並進入狀態 2
+
+    program   進入狀態 3
+    sassCode  進入狀態 4
+
+
+狀態 1
+
+    3 sassCode: VERSIONHEADER . IDENTIFIER NEWLINE functionList
+    5         | VERSIONHEADER . IDENTIFIER NEWLINE
+
+    IDENTIFIER  偏移，並進入狀態 5
+
+
+狀態 2
+
+    4 sassCode: NEWLINE . VERSIONHEADER IDENTIFIER NEWLINE functionList
+
+    VERSIONHEADER  偏移，並進入狀態 6
+
+
+狀態 3
+
+    0 $accept: program . $end
+    1 program: program . sassCode
+    3 sassCode: . VERSIONHEADER IDENTIFIER NEWLINE functionList
+    4         | . NEWLINE VERSIONHEADER IDENTIFIER NEWLINE functionList
+    5         | . VERSIONHEADER IDENTIFIER NEWLINE
+
+    $end           偏移，並進入狀態 7
+    VERSIONHEADER  偏移，並進入狀態 1
+    NEWLINE        偏移，並進入狀態 2
+
+    sassCode  進入狀態 8
+
+
+狀態 4
+
+    2 program: sassCode .
+
+    $預設  使用規則 2 以縮減 (program)
+
+
+狀態 5
+
+    3 sassCode: VERSIONHEADER IDENTIFIER . NEWLINE functionList
+    5         | VERSIONHEADER IDENTIFIER . NEWLINE
+
+    NEWLINE  偏移，並進入狀態 9
+
+
+狀態 6
+
+    4 sassCode: NEWLINE VERSIONHEADER . IDENTIFIER NEWLINE functionList
+
+    IDENTIFIER  偏移，並進入狀態 10
+
+
+狀態 7
+
+    0 $accept: program $end .
+
+    $預設  接受
+
+
+狀態 8
+
+    1 program: program sassCode .
+
+    $預設  使用規則 1 以縮減 (program)
+
+
+狀態 9
+
+    3 sassCode: VERSIONHEADER IDENTIFIER NEWLINE . functionList
+    5         | VERSIONHEADER IDENTIFIER NEWLINE .  [$end, VERSIONHEADER, NEWLINE]
+    6 functionList: . functionList function
+    7             | . function
+    9 function: . FUNCTIONHEADER IDENTIFIER $@1 statementList NEWLINE
+
+    FUNCTIONHEADER  偏移，並進入狀態 11
+
+    $預設  使用規則 5 以縮減 (sassCode)
+
+    functionList  進入狀態 12
+    function      進入狀態 13
+
+
+狀態 10
+
+    4 sassCode: NEWLINE VERSIONHEADER IDENTIFIER . NEWLINE functionList
+
+    NEWLINE  偏移，並進入狀態 14
+
+
+狀態 11
+
+    9 function: FUNCTIONHEADER . IDENTIFIER $@1 statementList NEWLINE
+
+    IDENTIFIER  偏移，並進入狀態 15
+
+
+狀態 12
+
+    3 sassCode: VERSIONHEADER IDENTIFIER NEWLINE functionList .  [$end, VERSIONHEADER, NEWLINE]
+    6 functionList: functionList . function
+    9 function: . FUNCTIONHEADER IDENTIFIER $@1 statementList NEWLINE
+
+    FUNCTIONHEADER  偏移，並進入狀態 11
+
+    $預設  使用規則 3 以縮減 (sassCode)
+
+    function  進入狀態 16
+
+
+狀態 13
+
+    7 functionList: function .
+
+    $預設  使用規則 7 以縮減 (functionList)
+
+
+狀態 14
+
+    4 sassCode: NEWLINE VERSIONHEADER IDENTIFIER NEWLINE . functionList
+    6 functionList: . functionList function
+    7             | . function
+    9 function: . FUNCTIONHEADER IDENTIFIER $@1 statementList NEWLINE
+
+    FUNCTIONHEADER  偏移，並進入狀態 11
+
+    functionList  進入狀態 17
+    function      進入狀態 13
+
+
+狀態 15
+
+    8 $@1: . %empty
+    9 function: FUNCTIONHEADER IDENTIFIER . $@1 statementList NEWLINE
+
+    $預設  使用規則 8 以縮減 ($@1)
+
+    $@1  進入狀態 18
+
+
+狀態 16
+
+    6 functionList: functionList function .
+
+    $預設  使用規則 6 以縮減 (functionList)
+
+
+狀態 17
+
+    4 sassCode: NEWLINE VERSIONHEADER IDENTIFIER NEWLINE functionList .  [$end, VERSIONHEADER, NEWLINE]
+    6 functionList: functionList . function
+    9 function: . FUNCTIONHEADER IDENTIFIER $@1 statementList NEWLINE
+
+    FUNCTIONHEADER  偏移，並進入狀態 11
+
+    $預設  使用規則 4 以縮減 (sassCode)
+
+    function  進入狀態 16
+
+
+狀態 18
+
+    9 function: FUNCTIONHEADER IDENTIFIER $@1 . statementList NEWLINE
+   10 statementList: . statementList statement NEWLINE
+   11              | . statementList statement SEMICOLON NEWLINE
+   12              | . statement NEWLINE
+   13              | . statement SEMICOLON NEWLINE
+   14              | . NEWLINE
+   15 $@2: . %empty  [LABELSTART]
+   16 statement: . $@2 instructionLabel statementend
+
+    NEWLINE  偏移，並進入狀態 19
+
+    $預設  使用規則 15 以縮減 ($@2)
+
+    statementList  進入狀態 20
+    statement      進入狀態 21
+    $@2            進入狀態 22
+
+
+狀態 19
+
+   14 statementList: NEWLINE .
+
+    $預設  使用規則 14 以縮減 (statementList)
+
+
+狀態 20
+
+    9 function: FUNCTIONHEADER IDENTIFIER $@1 statementList . NEWLINE
+   10 statementList: statementList . statement NEWLINE
+   11              | statementList . statement SEMICOLON NEWLINE
+   15 $@2: . %empty  [LABELSTART]
+   16 statement: . $@2 instructionLabel statementend
+
+    NEWLINE  偏移，並進入狀態 23
+
+    $預設  使用規則 15 以縮減 ($@2)
+
+    statement  進入狀態 24
+    $@2        進入狀態 22
+
+
+狀態 21
+
+   12 statementList: statement . NEWLINE
+   13              | statement . SEMICOLON NEWLINE
+
+    NEWLINE    偏移，並進入狀態 25
+    SEMICOLON  偏移，並進入狀態 26
+
+
+狀態 22
+
+   16 statement: $@2 . instructionLabel statementend
+   20 instructionLabel: . LABELSTART LABEL LABELEND
+
+    LABELSTART  偏移，並進入狀態 27
+
+    instructionLabel  進入狀態 28
+
+
+狀態 23
+
+    9 function: FUNCTIONHEADER IDENTIFIER $@1 statementList NEWLINE .
+
+    $預設  使用規則 9 以縮減 (function)
+
+
+狀態 24
+
+   10 statementList: statementList statement . NEWLINE
+   11              | statementList statement . SEMICOLON NEWLINE
+
+    NEWLINE    偏移，並進入狀態 29
+    SEMICOLON  偏移，並進入狀態 30
+
+
+狀態 25
+
+   12 statementList: statement NEWLINE .
+
+    $預設  使用規則 12 以縮減 (statementList)
+
+
+狀態 26
+
+   13 statementList: statement SEMICOLON . NEWLINE
+
+    NEWLINE  偏移，並進入狀態 31
+
+
+狀態 27
+
+   20 instructionLabel: LABELSTART . LABEL LABELEND
+
+    LABEL  偏移，並進入狀態 32
+
+
+狀態 28
+
+   16 statement: $@2 instructionLabel . statementend
+   17 statementend: . instructionHex assemblyInstruction
+   18             | . %empty  [NEWLINE, SEMICOLON]
+   19 instructionHex: . INSTHEX
+
+    INSTHEX  偏移，並進入狀態 33
+
+    $預設  使用規則 18 以縮減 (statementend)
+
+    statementend    進入狀態 34
+    instructionHex  進入狀態 35
+
+
+狀態 29
+
+   10 statementList: statementList statement NEWLINE .
+
+    $預設  使用規則 10 以縮減 (statementList)
+
+
+狀態 30
+
+   11 statementList: statementList statement SEMICOLON . NEWLINE
+
+    NEWLINE  偏移，並進入狀態 36
+
+
+狀態 31
+
+   13 statementList: statement SEMICOLON NEWLINE .
+
+    $預設  使用規則 13 以縮減 (statementList)
+
+
+狀態 32
+
+   20 instructionLabel: LABELSTART LABEL . LABELEND
+
+    LABELEND  偏移，並進入狀態 37
+
+
+狀態 33
+
+   19 instructionHex: INSTHEX .
+
+    $預設  使用規則 19 以縮減 (instructionHex)
+
+
+狀態 34
+
+   16 statement: $@2 instructionLabel statementend .
+
+    $預設  使用規則 16 以縮減 (statement)
+
+
+狀態 35
+
+   17 statementend: instructionHex . assemblyInstruction
+   21 assemblyInstruction: . baseInstruction modifierList operandList
+   22 baseInstruction: . simpleInstructions
+   23                | . branchInstructions
+   24                | . GRED DOT simpleInstructions
+   25                | . GATOM DOT simpleInstructions
+   26                | . pbkInstruction
+   27 simpleInstructions: . ADA
+   28                   | . AND
+   29                   | . ANDS
+   30                   | . BRX
+   31                   | . COS
+   32                   | . DADD
+   33                   | . DMIN
+   34                   | . DMAX
+   35                   | . DFMA
+   36                   | . DMUL
+   37                   | . EX2
+   38                   | . F2F
+   39                   | . F2I
+   40                   | . FADD
+   41                   | . FADD32
+   42                   | . FADD32I
+   43                   | . FMAD
+   44                   | . FMAD32I
+   45                   | . FMUL
+   46                   | . FMUL32
+   47                   | . FMUL32I
+   48                   | . FSET
+   49                   | . DSET
+   50                   | . G2R
+   51                   | . GLD
+   52                   | . GST
+   53                   | . I2F
+   54                   | . I2I
+   55                   | . IADD
+   56                   | . IADD32
+   57                   | . IADD32I
+   58                   | . IMAD
+   59                   | . ISAD
+   60                   | . IMAD24
+   61                   | . IMAD32I
+   62                   | . IMAD32
+   63                   | . IMUL
+   64                   | . IMUL24
+   65                   | . IMUL24H
+   66                   | . IMULS24
+   67                   | . IMUL32
+   68                   | . IMUL32S24
+   69                   | . IMUL32I
+   70                   | . IMUL32I24
+   71                   | . IMUL32IS24
+   72                   | . IMUL32U24
+   73                   | . ISET
+   74                   | . LG2
+   75                   | . LLD
+   76                   | . LST
+   77                   | . MOV
+   78                   | . MOV32
+   79                   | . MVC
+   80                   | . MVI
+   81                   | . NOP
+   82                   | . NOT
+   83                   | . NOTS
+   84                   | . OR
+   85                   | . ORS
+   86                   | . R2A
+   87                   | . R2G
+   88                   | . R2GU16U8
+   89                   | . RCP
+   90                   | . RCP32
+   91                   | . RET
+   92                   | . RRO
+   93                   | . RSQ
+   94                   | . SHL
+   95                   | . SHR
+   96                   | . SIN
+   97                   | . SSY
+   98                   | . XOR
+   99                   | . XORS
+  100                   | . S2R
+  101                   | . SASS_LD
+  102                   | . STS
+  103                   | . LDS
+  104                   | . SASS_ST
+  105                   | . EXIT
+  106                   | . BAR
+  107                   | . IMIN
+  108                   | . IMAX
+  109                   | . A2R
+  110                   | . FMAX
+  111                   | . FMIN
+  112                   | . TEX
+  113                   | . TEX32
+  114                   | . C2R
+  115                   | . BRK
+  116                   | . R2C
+  117                   | . IADDCARRY
+  118                   | . VOTE
+  120 pbkInstruction: . PBK $@3 HEXLITERAL
+  122 branchInstructions: . BRA $@4 instructionPredicate HEXLITERAL
+  124                   | . BRA $@5 HEXLITERAL
+  126                   | . CAL $@6 HEXLITERAL
+  128                   | . CAL $@7 DOTNOINC HEXLITERAL
+
+    BAR         偏移，並進入狀態 38
+    ADA         偏移，並進入狀態 39
+    AND         偏移，並進入狀態 40
+    ANDS        偏移，並進入狀態 41
+    BRA         偏移，並進入狀態 42
+    BRX         偏移，並進入狀態 43
+    CAL         偏移，並進入狀態 44
+    COS         偏移，並進入狀態 45
+    DADD        偏移，並進入狀態 46
+    DMIN        偏移，並進入狀態 47
+    DMAX        偏移，並進入狀態 48
+    DFMA        偏移，並進入狀態 49
+    DMUL        偏移，並進入狀態 50
+    EX2         偏移，並進入狀態 51
+    F2F         偏移，並進入狀態 52
+    F2I         偏移，並進入狀態 53
+    FADD        偏移，並進入狀態 54
+    FADD32      偏移，並進入狀態 55
+    FADD32I     偏移，並進入狀態 56
+    FMAD        偏移，並進入狀態 57
+    FMAD32I     偏移，並進入狀態 58
+    FMUL        偏移，並進入狀態 59
+    FMUL32      偏移，並進入狀態 60
+    FMUL32I     偏移，並進入狀態 61
+    FSET        偏移，並進入狀態 62
+    DSET        偏移，並進入狀態 63
+    G2R         偏移，並進入狀態 64
+    GLD         偏移，並進入狀態 65
+    GST         偏移，並進入狀態 66
+    I2F         偏移，並進入狀態 67
+    I2I         偏移，並進入狀態 68
+    IADD        偏移，並進入狀態 69
+    IADD32      偏移，並進入狀態 70
+    IADD32I     偏移，並進入狀態 71
+    IMAD        偏移，並進入狀態 72
+    ISAD        偏移，並進入狀態 73
+    IMAD24      偏移，並進入狀態 74
+    IMAD32I     偏移，並進入狀態 75
+    IMAD32      偏移，並進入狀態 76
+    IADDCARRY   偏移，並進入狀態 77
+    IMUL        偏移，並進入狀態 78
+    IMUL24      偏移，並進入狀態 79
+    IMUL24H     偏移，並進入狀態 80
+    IMULS24     偏移，並進入狀態 81
+    IMUL32      偏移，並進入狀態 82
+    IMUL32S24   偏移，並進入狀態 83
+    IMUL32U24   偏移，並進入狀態 84
+    IMUL32I     偏移，並進入狀態 85
+    IMUL32I24   偏移，並進入狀態 86
+    IMUL32IS24  偏移，並進入狀態 87
+    ISET        偏移，並進入狀態 88
+    LG2         偏移，並進入狀態 89
+    LLD         偏移，並進入狀態 90
+    LST         偏移，並進入狀態 91
+    MOV         偏移，並進入狀態 92
+    MOV32       偏移，並進入狀態 93
+    MVC         偏移，並進入狀態 94
+    MVI         偏移，並進入狀態 95
+    NOP         偏移，並進入狀態 96
+    NOT         偏移，並進入狀態 97
+    NOTS        偏移，並進入狀態 98
+    OR          偏移，並進入狀態 99
+    ORS         偏移，並進入狀態 100
+    R2A         偏移，並進入狀態 101
+    R2G         偏移，並進入狀態 102
+    R2GU16U8    偏移，並進入狀態 103
+    RCP         偏移，並進入狀態 104
+    RCP32       偏移，並進入狀態 105
+    RET         偏移，並進入狀態 106
+    RRO         偏移，並進入狀態 107
+    RSQ         偏移，並進入狀態 108
+    SIN         偏移，並進入狀態 109
+    SHL         偏移，並進入狀態 110
+    SHR         偏移，並進入狀態 111
+    SSY         偏移，並進入狀態 112
+    XOR         偏移，並進入狀態 113
+    XORS        偏移，並進入狀態 114
+    S2R         偏移，並進入狀態 115
+    SASS_LD     偏移，並進入狀態 116
+    STS         偏移，並進入狀態 117
+    LDS         偏移，並進入狀態 118
+    SASS_ST     偏移，並進入狀態 119
+    IMIN        偏移，並進入狀態 120
+    IMAX        偏移，並進入狀態 121
+    A2R         偏移，並進入狀態 122
+    FMAX        偏移，並進入狀態 123
+    FMIN        偏移，並進入狀態 124
+    TEX         偏移，並進入狀態 125
+    TEX32       偏移，並進入狀態 126
+    C2R         偏移，並進入狀態 127
+    EXIT        偏移，並進入狀態 128
+    GRED        偏移，並進入狀態 129
+    PBK         偏移，並進入狀態 130
+    BRK         偏移，並進入狀態 131
+    R2C         偏移，並進入狀態 132
+    GATOM       偏移，並進入狀態 133
+    VOTE        偏移，並進入狀態 134
+
+    assemblyInstruction  進入狀態 135
+    baseInstruction      進入狀態 136
+    simpleInstructions   進入狀態 137
+    pbkInstruction       進入狀態 138
+    branchInstructions   進入狀態 139
+
+
+狀態 36
+
+   11 statementList: statementList statement SEMICOLON NEWLINE .
+
+    $預設  使用規則 11 以縮減 (statementList)
+
+
+狀態 37
+
+   20 instructionLabel: LABELSTART LABEL LABELEND .
+
+    $預設  使用規則 20 以縮減 (instructionLabel)
+
+
+狀態 38
+
+  106 simpleInstructions: BAR .
+
+    $預設  使用規則 106 以縮減 (simpleInstructions)
+
+
+狀態 39
+
+   27 simpleInstructions: ADA .
+
+    $預設  使用規則 27 以縮減 (simpleInstructions)
+
+
+狀態 40
+
+   28 simpleInstructions: AND .
+
+    $預設  使用規則 28 以縮減 (simpleInstructions)
+
+
+狀態 41
+
+   29 simpleInstructions: ANDS .
+
+    $預設  使用規則 29 以縮減 (simpleInstructions)
+
+
+狀態 42
+
+  121 $@4: . %empty  [PREDREGISTER3]
+  122 branchInstructions: BRA . $@4 instructionPredicate HEXLITERAL
+  123 $@5: . %empty  [HEXLITERAL]
+  124 branchInstructions: BRA . $@5 HEXLITERAL
+
+    HEXLITERAL  使用規則 123 以縮減 ($@5)
+    $預設     使用規則 121 以縮減 ($@4)
+
+    $@4  進入狀態 140
+    $@5  進入狀態 141
+
+
+狀態 43
+
+   30 simpleInstructions: BRX .
+
+    $預設  使用規則 30 以縮減 (simpleInstructions)
+
+
+狀態 44
+
+  125 $@6: . %empty  [HEXLITERAL]
+  126 branchInstructions: CAL . $@6 HEXLITERAL
+  127 $@7: . %empty  [DOTNOINC]
+  128 branchInstructions: CAL . $@7 DOTNOINC HEXLITERAL
+
+    DOTNOINC  使用規則 127 以縮減 ($@7)
+    $預設   使用規則 125 以縮減 ($@6)
+
+    $@6  進入狀態 142
+    $@7  進入狀態 143
+
+
+狀態 45
+
+   31 simpleInstructions: COS .
+
+    $預設  使用規則 31 以縮減 (simpleInstructions)
+
+
+狀態 46
+
+   32 simpleInstructions: DADD .
+
+    $預設  使用規則 32 以縮減 (simpleInstructions)
+
+
+狀態 47
+
+   33 simpleInstructions: DMIN .
+
+    $預設  使用規則 33 以縮減 (simpleInstructions)
+
+
+狀態 48
+
+   34 simpleInstructions: DMAX .
+
+    $預設  使用規則 34 以縮減 (simpleInstructions)
+
+
+狀態 49
+
+   35 simpleInstructions: DFMA .
+
+    $預設  使用規則 35 以縮減 (simpleInstructions)
+
+
+狀態 50
+
+   36 simpleInstructions: DMUL .
+
+    $預設  使用規則 36 以縮減 (simpleInstructions)
+
+
+狀態 51
+
+   37 simpleInstructions: EX2 .
+
+    $預設  使用規則 37 以縮減 (simpleInstructions)
+
+
+狀態 52
+
+   38 simpleInstructions: F2F .
+
+    $預設  使用規則 38 以縮減 (simpleInstructions)
+
+
+狀態 53
+
+   39 simpleInstructions: F2I .
+
+    $預設  使用規則 39 以縮減 (simpleInstructions)
+
+
+狀態 54
+
+   40 simpleInstructions: FADD .
+
+    $預設  使用規則 40 以縮減 (simpleInstructions)
+
+
+狀態 55
+
+   41 simpleInstructions: FADD32 .
+
+    $預設  使用規則 41 以縮減 (simpleInstructions)
+
+
+狀態 56
+
+   42 simpleInstructions: FADD32I .
+
+    $預設  使用規則 42 以縮減 (simpleInstructions)
+
+
+狀態 57
+
+   43 simpleInstructions: FMAD .
+
+    $預設  使用規則 43 以縮減 (simpleInstructions)
+
+
+狀態 58
+
+   44 simpleInstructions: FMAD32I .
+
+    $預設  使用規則 44 以縮減 (simpleInstructions)
+
+
+狀態 59
+
+   45 simpleInstructions: FMUL .
+
+    $預設  使用規則 45 以縮減 (simpleInstructions)
+
+
+狀態 60
+
+   46 simpleInstructions: FMUL32 .
+
+    $預設  使用規則 46 以縮減 (simpleInstructions)
+
+
+狀態 61
+
+   47 simpleInstructions: FMUL32I .
+
+    $預設  使用規則 47 以縮減 (simpleInstructions)
+
+
+狀態 62
+
+   48 simpleInstructions: FSET .
+
+    $預設  使用規則 48 以縮減 (simpleInstructions)
+
+
+狀態 63
+
+   49 simpleInstructions: DSET .
+
+    $預設  使用規則 49 以縮減 (simpleInstructions)
+
+
+狀態 64
+
+   50 simpleInstructions: G2R .
+
+    $預設  使用規則 50 以縮減 (simpleInstructions)
+
+
+狀態 65
+
+   51 simpleInstructions: GLD .
+
+    $預設  使用規則 51 以縮減 (simpleInstructions)
+
+
+狀態 66
+
+   52 simpleInstructions: GST .
+
+    $預設  使用規則 52 以縮減 (simpleInstructions)
+
+
+狀態 67
+
+   53 simpleInstructions: I2F .
+
+    $預設  使用規則 53 以縮減 (simpleInstructions)
+
+
+狀態 68
+
+   54 simpleInstructions: I2I .
+
+    $預設  使用規則 54 以縮減 (simpleInstructions)
+
+
+狀態 69
+
+   55 simpleInstructions: IADD .
+
+    $預設  使用規則 55 以縮減 (simpleInstructions)
+
+
+狀態 70
+
+   56 simpleInstructions: IADD32 .
+
+    $預設  使用規則 56 以縮減 (simpleInstructions)
+
+
+狀態 71
+
+   57 simpleInstructions: IADD32I .
+
+    $預設  使用規則 57 以縮減 (simpleInstructions)
+
+
+狀態 72
+
+   58 simpleInstructions: IMAD .
+
+    $預設  使用規則 58 以縮減 (simpleInstructions)
+
+
+狀態 73
+
+   59 simpleInstructions: ISAD .
+
+    $預設  使用規則 59 以縮減 (simpleInstructions)
+
+
+狀態 74
+
+   60 simpleInstructions: IMAD24 .
+
+    $預設  使用規則 60 以縮減 (simpleInstructions)
+
+
+狀態 75
+
+   61 simpleInstructions: IMAD32I .
+
+    $預設  使用規則 61 以縮減 (simpleInstructions)
+
+
+狀態 76
+
+   62 simpleInstructions: IMAD32 .
+
+    $預設  使用規則 62 以縮減 (simpleInstructions)
+
+
+狀態 77
+
+  117 simpleInstructions: IADDCARRY .
+
+    $預設  使用規則 117 以縮減 (simpleInstructions)
+
+
+狀態 78
+
+   63 simpleInstructions: IMUL .
+
+    $預設  使用規則 63 以縮減 (simpleInstructions)
+
+
+狀態 79
+
+   64 simpleInstructions: IMUL24 .
+
+    $預設  使用規則 64 以縮減 (simpleInstructions)
+
+
+狀態 80
+
+   65 simpleInstructions: IMUL24H .
+
+    $預設  使用規則 65 以縮減 (simpleInstructions)
+
+
+狀態 81
+
+   66 simpleInstructions: IMULS24 .
+
+    $預設  使用規則 66 以縮減 (simpleInstructions)
+
+
+狀態 82
+
+   67 simpleInstructions: IMUL32 .
+
+    $預設  使用規則 67 以縮減 (simpleInstructions)
+
+
+狀態 83
+
+   68 simpleInstructions: IMUL32S24 .
+
+    $預設  使用規則 68 以縮減 (simpleInstructions)
+
+
+狀態 84
+
+   72 simpleInstructions: IMUL32U24 .
+
+    $預設  使用規則 72 以縮減 (simpleInstructions)
+
+
+狀態 85
+
+   69 simpleInstructions: IMUL32I .
+
+    $預設  使用規則 69 以縮減 (simpleInstructions)
+
+
+狀態 86
+
+   70 simpleInstructions: IMUL32I24 .
+
+    $預設  使用規則 70 以縮減 (simpleInstructions)
+
+
+狀態 87
+
+   71 simpleInstructions: IMUL32IS24 .
+
+    $預設  使用規則 71 以縮減 (simpleInstructions)
+
+
+狀態 88
+
+   73 simpleInstructions: ISET .
+
+    $預設  使用規則 73 以縮減 (simpleInstructions)
+
+
+狀態 89
+
+   74 simpleInstructions: LG2 .
+
+    $預設  使用規則 74 以縮減 (simpleInstructions)
+
+
+狀態 90
+
+   75 simpleInstructions: LLD .
+
+    $預設  使用規則 75 以縮減 (simpleInstructions)
+
+
+狀態 91
+
+   76 simpleInstructions: LST .
+
+    $預設  使用規則 76 以縮減 (simpleInstructions)
+
+
+狀態 92
+
+   77 simpleInstructions: MOV .
+
+    $預設  使用規則 77 以縮減 (simpleInstructions)
+
+
+狀態 93
+
+   78 simpleInstructions: MOV32 .
+
+    $預設  使用規則 78 以縮減 (simpleInstructions)
+
+
+狀態 94
+
+   79 simpleInstructions: MVC .
+
+    $預設  使用規則 79 以縮減 (simpleInstructions)
+
+
+狀態 95
+
+   80 simpleInstructions: MVI .
+
+    $預設  使用規則 80 以縮減 (simpleInstructions)
+
+
+狀態 96
+
+   81 simpleInstructions: NOP .
+
+    $預設  使用規則 81 以縮減 (simpleInstructions)
+
+
+狀態 97
+
+   82 simpleInstructions: NOT .
+
+    $預設  使用規則 82 以縮減 (simpleInstructions)
+
+
+狀態 98
+
+   83 simpleInstructions: NOTS .
+
+    $預設  使用規則 83 以縮減 (simpleInstructions)
+
+
+狀態 99
+
+   84 simpleInstructions: OR .
+
+    $預設  使用規則 84 以縮減 (simpleInstructions)
+
+
+狀態 100
+
+   85 simpleInstructions: ORS .
+
+    $預設  使用規則 85 以縮減 (simpleInstructions)
+
+
+狀態 101
+
+   86 simpleInstructions: R2A .
+
+    $預設  使用規則 86 以縮減 (simpleInstructions)
+
+
+狀態 102
+
+   87 simpleInstructions: R2G .
+
+    $預設  使用規則 87 以縮減 (simpleInstructions)
+
+
+狀態 103
+
+   88 simpleInstructions: R2GU16U8 .
+
+    $預設  使用規則 88 以縮減 (simpleInstructions)
+
+
+狀態 104
+
+   89 simpleInstructions: RCP .
+
+    $預設  使用規則 89 以縮減 (simpleInstructions)
+
+
+狀態 105
+
+   90 simpleInstructions: RCP32 .
+
+    $預設  使用規則 90 以縮減 (simpleInstructions)
+
+
+狀態 106
+
+   91 simpleInstructions: RET .
+
+    $預設  使用規則 91 以縮減 (simpleInstructions)
+
+
+狀態 107
+
+   92 simpleInstructions: RRO .
+
+    $預設  使用規則 92 以縮減 (simpleInstructions)
+
+
+狀態 108
+
+   93 simpleInstructions: RSQ .
+
+    $預設  使用規則 93 以縮減 (simpleInstructions)
+
+
+狀態 109
+
+   96 simpleInstructions: SIN .
+
+    $預設  使用規則 96 以縮減 (simpleInstructions)
+
+
+狀態 110
+
+   94 simpleInstructions: SHL .
+
+    $預設  使用規則 94 以縮減 (simpleInstructions)
+
+
+狀態 111
+
+   95 simpleInstructions: SHR .
+
+    $預設  使用規則 95 以縮減 (simpleInstructions)
+
+
+狀態 112
+
+   97 simpleInstructions: SSY .
+
+    $預設  使用規則 97 以縮減 (simpleInstructions)
+
+
+狀態 113
+
+   98 simpleInstructions: XOR .
+
+    $預設  使用規則 98 以縮減 (simpleInstructions)
+
+
+狀態 114
+
+   99 simpleInstructions: XORS .
+
+    $預設  使用規則 99 以縮減 (simpleInstructions)
+
+
+狀態 115
+
+  100 simpleInstructions: S2R .
+
+    $預設  使用規則 100 以縮減 (simpleInstructions)
+
+
+狀態 116
+
+  101 simpleInstructions: SASS_LD .
+
+    $預設  使用規則 101 以縮減 (simpleInstructions)
+
+
+狀態 117
+
+  102 simpleInstructions: STS .
+
+    $預設  使用規則 102 以縮減 (simpleInstructions)
+
+
+狀態 118
+
+  103 simpleInstructions: LDS .
+
+    $預設  使用規則 103 以縮減 (simpleInstructions)
+
+
+狀態 119
+
+  104 simpleInstructions: SASS_ST .
+
+    $預設  使用規則 104 以縮減 (simpleInstructions)
+
+
+狀態 120
+
+  107 simpleInstructions: IMIN .
+
+    $預設  使用規則 107 以縮減 (simpleInstructions)
+
+
+狀態 121
+
+  108 simpleInstructions: IMAX .
+
+    $預設  使用規則 108 以縮減 (simpleInstructions)
+
+
+狀態 122
+
+  109 simpleInstructions: A2R .
+
+    $預設  使用規則 109 以縮減 (simpleInstructions)
+
+
+狀態 123
+
+  110 simpleInstructions: FMAX .
+
+    $預設  使用規則 110 以縮減 (simpleInstructions)
+
+
+狀態 124
+
+  111 simpleInstructions: FMIN .
+
+    $預設  使用規則 111 以縮減 (simpleInstructions)
+
+
+狀態 125
+
+  112 simpleInstructions: TEX .
+
+    $預設  使用規則 112 以縮減 (simpleInstructions)
+
+
+狀態 126
+
+  113 simpleInstructions: TEX32 .
+
+    $預設  使用規則 113 以縮減 (simpleInstructions)
+
+
+狀態 127
+
+  114 simpleInstructions: C2R .
+
+    $預設  使用規則 114 以縮減 (simpleInstructions)
+
+
+狀態 128
+
+  105 simpleInstructions: EXIT .
+
+    $預設  使用規則 105 以縮減 (simpleInstructions)
+
+
+狀態 129
+
+   24 baseInstruction: GRED . DOT simpleInstructions
+
+    DOT  偏移，並進入狀態 144
+
+
+狀態 130
+
+  119 $@3: . %empty
+  120 pbkInstruction: PBK . $@3 HEXLITERAL
+
+    $預設  使用規則 119 以縮減 ($@3)
+
+    $@3  進入狀態 145
+
+
+狀態 131
+
+  115 simpleInstructions: BRK .
+
+    $預設  使用規則 115 以縮減 (simpleInstructions)
+
+
+狀態 132
+
+  116 simpleInstructions: R2C .
+
+    $預設  使用規則 116 以縮減 (simpleInstructions)
+
+
+狀態 133
+
+   25 baseInstruction: GATOM . DOT simpleInstructions
+
+    DOT  偏移，並進入狀態 146
+
+
+狀態 134
+
+  118 simpleInstructions: VOTE .
+
+    $預設  使用規則 118 以縮減 (simpleInstructions)
+
+
+狀態 135
+
+   17 statementend: instructionHex assemblyInstruction .
+
+    $預設  使用規則 17 以縮減 (statementend)
+
+
+狀態 136
+
+   21 assemblyInstruction: baseInstruction . modifierList operandList
+  129 modifierList: . modifier modifierList
+  130             | . %empty  [COS, EX2, SIN, EQ, EQU, GE, GEU, GT, GTU, LE, LEU, LT, LTU, NE, NEU, REGISTER, REGISTERLO, REGISTERHI, OFFSETREGISTER, PREDREGISTER, PREDREGISTER3, SREGISTER, SMEMLOCATION, ABSSMEMLOCATION, GMEMLOCATION, CMEMLOCATION, LMEMLOCATION, IDENTIFIER, HEXLITERAL, LEFTBRACKET, PIPE, TILDE, NEWLINE, SEMICOLON, OSQBRACKET]
+  131 modifier: . opTypes
+  132         | . DOTBEXT
+  133         | . DOTS
+  134         | . DOTSFU
+  135         | . DOTTRUNC
+  136         | . DOTCEIL
+  137         | . DOTFLOOR
+  138         | . DOTX
+  139         | . DOTE
+  140         | . DOTRED
+  141         | . DOTPOPC
+  142         | . DOTIR
+  143         | . DOTUN
+  144         | . DOTNODEP
+  145         | . DOTANY
+  146         | . DOTALL
+  147 opTypes: . DOTF16
+  148        | . DOTF32
+  149        | . DOTF64
+  150        | . DOTS8
+  151        | . DOTS16
+  152        | . DOTS32
+  153        | . DOTS64
+  154        | . DOTS128
+  155        | . DOTU8
+  156        | . DOTU16
+  157        | . DOTU32
+  158        | . DOTU24
+  159        | . DOTU64
+  160        | . DOTHI
+
+    DOTBEXT   偏移，並進入狀態 147
+    DOTS      偏移，並進入狀態 148
+    DOTSFU    偏移，並進入狀態 149
+    DOTTRUNC  偏移，並進入狀態 150
+    DOTCEIL   偏移，並進入狀態 151
+    DOTFLOOR  偏移，並進入狀態 152
+    DOTIR     偏移，並進入狀態 153
+    DOTUN     偏移，並進入狀態 154
+    DOTNODEP  偏移，並進入狀態 155
+    DOTANY    偏移，並進入狀態 156
+    DOTALL    偏移，並進入狀態 157
+    DOTF16    偏移，並進入狀態 158
+    DOTF32    偏移，並進入狀態 159
+    DOTF64    偏移，並進入狀態 160
+    DOTS8     偏移，並進入狀態 161
+    DOTS16    偏移，並進入狀態 162
+    DOTS32    偏移，並進入狀態 163
+    DOTS64    偏移，並進入狀態 164
+    DOTS128   偏移，並進入狀態 165
+    DOTU8     偏移，並進入狀態 166
+    DOTU16    偏移，並進入狀態 167
+    DOTU32    偏移，並進入狀態 168
+    DOTU24    偏移，並進入狀態 169
+    DOTU64    偏移，並進入狀態 170
+    DOTHI     偏移，並進入狀態 171
+    DOTX      偏移，並進入狀態 172
+    DOTE      偏移，並進入狀態 173
+    DOTRED    偏移，並進入狀態 174
+    DOTPOPC   偏移，並進入狀態 175
+
+    $預設  使用規則 130 以縮減 (modifierList)
+
+    modifierList  進入狀態 176
+    modifier      進入狀態 177
+    opTypes       進入狀態 178
+
+
+狀態 137
+
+   22 baseInstruction: simpleInstructions .
+
+    $預設  使用規則 22 以縮減 (baseInstruction)
+
+
+狀態 138
+
+   26 baseInstruction: pbkInstruction .
+
+    $預設  使用規則 26 以縮減 (baseInstruction)
+
+
+狀態 139
+
+   23 baseInstruction: branchInstructions .
+
+    $預設  使用規則 23 以縮減 (baseInstruction)
+
+
+狀態 140
+
+  122 branchInstructions: BRA $@4 . instructionPredicate HEXLITERAL
+  203 instructionPredicate: . PREDREGISTER3 predicateModifier
+  204                     | . PREDREGISTER3
+
+    PREDREGISTER3  偏移，並進入狀態 179
+
+    instructionPredicate  進入狀態 180
+
+
+狀態 141
+
+  124 branchInstructions: BRA $@5 . HEXLITERAL
+
+    HEXLITERAL  偏移，並進入狀態 181
+
+
+狀態 142
+
+  126 branchInstructions: CAL $@6 . HEXLITERAL
+
+    HEXLITERAL  偏移，並進入狀態 182
+
+
+狀態 143
+
+  128 branchInstructions: CAL $@7 . DOTNOINC HEXLITERAL
+
+    DOTNOINC  偏移，並進入狀態 183
+
+
+狀態 144
+
+   24 baseInstruction: GRED DOT . simpleInstructions
+   27 simpleInstructions: . ADA
+   28                   | . AND
+   29                   | . ANDS
+   30                   | . BRX
+   31                   | . COS
+   32                   | . DADD
+   33                   | . DMIN
+   34                   | . DMAX
+   35                   | . DFMA
+   36                   | . DMUL
+   37                   | . EX2
+   38                   | . F2F
+   39                   | . F2I
+   40                   | . FADD
+   41                   | . FADD32
+   42                   | . FADD32I
+   43                   | . FMAD
+   44                   | . FMAD32I
+   45                   | . FMUL
+   46                   | . FMUL32
+   47                   | . FMUL32I
+   48                   | . FSET
+   49                   | . DSET
+   50                   | . G2R
+   51                   | . GLD
+   52                   | . GST
+   53                   | . I2F
+   54                   | . I2I
+   55                   | . IADD
+   56                   | . IADD32
+   57                   | . IADD32I
+   58                   | . IMAD
+   59                   | . ISAD
+   60                   | . IMAD24
+   61                   | . IMAD32I
+   62                   | . IMAD32
+   63                   | . IMUL
+   64                   | . IMUL24
+   65                   | . IMUL24H
+   66                   | . IMULS24
+   67                   | . IMUL32
+   68                   | . IMUL32S24
+   69                   | . IMUL32I
+   70                   | . IMUL32I24
+   71                   | . IMUL32IS24
+   72                   | . IMUL32U24
+   73                   | . ISET
+   74                   | . LG2
+   75                   | . LLD
+   76                   | . LST
+   77                   | . MOV
+   78                   | . MOV32
+   79                   | . MVC
+   80                   | . MVI
+   81                   | . NOP
+   82                   | . NOT
+   83                   | . NOTS
+   84                   | . OR
+   85                   | . ORS
+   86                   | . R2A
+   87                   | . R2G
+   88                   | . R2GU16U8
+   89                   | . RCP
+   90                   | . RCP32
+   91                   | . RET
+   92                   | . RRO
+   93                   | . RSQ
+   94                   | . SHL
+   95                   | . SHR
+   96                   | . SIN
+   97                   | . SSY
+   98                   | . XOR
+   99                   | . XORS
+  100                   | . S2R
+  101                   | . SASS_LD
+  102                   | . STS
+  103                   | . LDS
+  104                   | . SASS_ST
+  105                   | . EXIT
+  106                   | . BAR
+  107                   | . IMIN
+  108                   | . IMAX
+  109                   | . A2R
+  110                   | . FMAX
+  111                   | . FMIN
+  112                   | . TEX
+  113                   | . TEX32
+  114                   | . C2R
+  115                   | . BRK
+  116                   | . R2C
+  117                   | . IADDCARRY
+  118                   | . VOTE
+
+    BAR         偏移，並進入狀態 38
+    ADA         偏移，並進入狀態 39
+    AND         偏移，並進入狀態 40
+    ANDS        偏移，並進入狀態 41
+    BRX         偏移，並進入狀態 43
+    COS         偏移，並進入狀態 45
+    DADD        偏移，並進入狀態 46
+    DMIN        偏移，並進入狀態 47
+    DMAX        偏移，並進入狀態 48
+    DFMA        偏移，並進入狀態 49
+    DMUL        偏移，並進入狀態 50
+    EX2         偏移，並進入狀態 51
+    F2F         偏移，並進入狀態 52
+    F2I         偏移，並進入狀態 53
+    FADD        偏移，並進入狀態 54
+    FADD32      偏移，並進入狀態 55
+    FADD32I     偏移，並進入狀態 56
+    FMAD        偏移，並進入狀態 57
+    FMAD32I     偏移，並進入狀態 58
+    FMUL        偏移，並進入狀態 59
+    FMUL32      偏移，並進入狀態 60
+    FMUL32I     偏移，並進入狀態 61
+    FSET        偏移，並進入狀態 62
+    DSET        偏移，並進入狀態 63
+    G2R         偏移，並進入狀態 64
+    GLD         偏移，並進入狀態 65
+    GST         偏移，並進入狀態 66
+    I2F         偏移，並進入狀態 67
+    I2I         偏移，並進入狀態 68
+    IADD        偏移，並進入狀態 69
+    IADD32      偏移，並進入狀態 70
+    IADD32I     偏移，並進入狀態 71
+    IMAD        偏移，並進入狀態 72
+    ISAD        偏移，並進入狀態 73
+    IMAD24      偏移，並進入狀態 74
+    IMAD32I     偏移，並進入狀態 75
+    IMAD32      偏移，並進入狀態 76
+    IADDCARRY   偏移，並進入狀態 77
+    IMUL        偏移，並進入狀態 78
+    IMUL24      偏移，並進入狀態 79
+    IMUL24H     偏移，並進入狀態 80
+    IMULS24     偏移，並進入狀態 81
+    IMUL32      偏移，並進入狀態 82
+    IMUL32S24   偏移，並進入狀態 83
+    IMUL32U24   偏移，並進入狀態 84
+    IMUL32I     偏移，並進入狀態 85
+    IMUL32I24   偏移，並進入狀態 86
+    IMUL32IS24  偏移，並進入狀態 87
+    ISET        偏移，並進入狀態 88
+    LG2         偏移，並進入狀態 89
+    LLD         偏移，並進入狀態 90
+    LST         偏移，並進入狀態 91
+    MOV         偏移，並進入狀態 92
+    MOV32       偏移，並進入狀態 93
+    MVC         偏移，並進入狀態 94
+    MVI         偏移，並進入狀態 95
+    NOP         偏移，並進入狀態 96
+    NOT         偏移，並進入狀態 97
+    NOTS        偏移，並進入狀態 98
+    OR          偏移，並進入狀態 99
+    ORS         偏移，並進入狀態 100
+    R2A         偏移，並進入狀態 101
+    R2G         偏移，並進入狀態 102
+    R2GU16U8    偏移，並進入狀態 103
+    RCP         偏移，並進入狀態 104
+    RCP32       偏移，並進入狀態 105
+    RET         偏移，並進入狀態 106
+    RRO         偏移，並進入狀態 107
+    RSQ         偏移，並進入狀態 108
+    SIN         偏移，並進入狀態 109
+    SHL         偏移，並進入狀態 110
+    SHR         偏移，並進入狀態 111
+    SSY         偏移，並進入狀態 112
+    XOR         偏移，並進入狀態 113
+    XORS        偏移，並進入狀態 114
+    S2R         偏移，並進入狀態 115
+    SASS_LD     偏移，並進入狀態 116
+    STS         偏移，並進入狀態 117
+    LDS         偏移，並進入狀態 118
+    SASS_ST     偏移，並進入狀態 119
+    IMIN        偏移，並進入狀態 120
+    IMAX        偏移，並進入狀態 121
+    A2R         偏移，並進入狀態 122
+    FMAX        偏移，並進入狀態 123
+    FMIN        偏移，並進入狀態 124
+    TEX         偏移，並進入狀態 125
+    TEX32       偏移，並進入狀態 126
+    C2R         偏移，並進入狀態 127
+    EXIT        偏移，並進入狀態 128
+    BRK         偏移，並進入狀態 131
+    R2C         偏移，並進入狀態 132
+    VOTE        偏移，並進入狀態 134
+
+    simpleInstructions  進入狀態 184
+
+
+狀態 145
+
+  120 pbkInstruction: PBK $@3 . HEXLITERAL
+
+    HEXLITERAL  偏移，並進入狀態 185
+
+
+狀態 146
+
+   25 baseInstruction: GATOM DOT . simpleInstructions
+   27 simpleInstructions: . ADA
+   28                   | . AND
+   29                   | . ANDS
+   30                   | . BRX
+   31                   | . COS
+   32                   | . DADD
+   33                   | . DMIN
+   34                   | . DMAX
+   35                   | . DFMA
+   36                   | . DMUL
+   37                   | . EX2
+   38                   | . F2F
+   39                   | . F2I
+   40                   | . FADD
+   41                   | . FADD32
+   42                   | . FADD32I
+   43                   | . FMAD
+   44                   | . FMAD32I
+   45                   | . FMUL
+   46                   | . FMUL32
+   47                   | . FMUL32I
+   48                   | . FSET
+   49                   | . DSET
+   50                   | . G2R
+   51                   | . GLD
+   52                   | . GST
+   53                   | . I2F
+   54                   | . I2I
+   55                   | . IADD
+   56                   | . IADD32
+   57                   | . IADD32I
+   58                   | . IMAD
+   59                   | . ISAD
+   60                   | . IMAD24
+   61                   | . IMAD32I
+   62                   | . IMAD32
+   63                   | . IMUL
+   64                   | . IMUL24
+   65                   | . IMUL24H
+   66                   | . IMULS24
+   67                   | . IMUL32
+   68                   | . IMUL32S24
+   69                   | . IMUL32I
+   70                   | . IMUL32I24
+   71                   | . IMUL32IS24
+   72                   | . IMUL32U24
+   73                   | . ISET
+   74                   | . LG2
+   75                   | . LLD
+   76                   | . LST
+   77                   | . MOV
+   78                   | . MOV32
+   79                   | . MVC
+   80                   | . MVI
+   81                   | . NOP
+   82                   | . NOT
+   83                   | . NOTS
+   84                   | . OR
+   85                   | . ORS
+   86                   | . R2A
+   87                   | . R2G
+   88                   | . R2GU16U8
+   89                   | . RCP
+   90                   | . RCP32
+   91                   | . RET
+   92                   | . RRO
+   93                   | . RSQ
+   94                   | . SHL
+   95                   | . SHR
+   96                   | . SIN
+   97                   | . SSY
+   98                   | . XOR
+   99                   | . XORS
+  100                   | . S2R
+  101                   | . SASS_LD
+  102                   | . STS
+  103                   | . LDS
+  104                   | . SASS_ST
+  105                   | . EXIT
+  106                   | . BAR
+  107                   | . IMIN
+  108                   | . IMAX
+  109                   | . A2R
+  110                   | . FMAX
+  111                   | . FMIN
+  112                   | . TEX
+  113                   | . TEX32
+  114                   | . C2R
+  115                   | . BRK
+  116                   | . R2C
+  117                   | . IADDCARRY
+  118                   | . VOTE
+
+    BAR         偏移，並進入狀態 38
+    ADA         偏移，並進入狀態 39
+    AND         偏移，並進入狀態 40
+    ANDS        偏移，並進入狀態 41
+    BRX         偏移，並進入狀態 43
+    COS         偏移，並進入狀態 45
+    DADD        偏移，並進入狀態 46
+    DMIN        偏移，並進入狀態 47
+    DMAX        偏移，並進入狀態 48
+    DFMA        偏移，並進入狀態 49
+    DMUL        偏移，並進入狀態 50
+    EX2         偏移，並進入狀態 51
+    F2F         偏移，並進入狀態 52
+    F2I         偏移，並進入狀態 53
+    FADD        偏移，並進入狀態 54
+    FADD32      偏移，並進入狀態 55
+    FADD32I     偏移，並進入狀態 56
+    FMAD        偏移，並進入狀態 57
+    FMAD32I     偏移，並進入狀態 58
+    FMUL        偏移，並進入狀態 59
+    FMUL32      偏移，並進入狀態 60
+    FMUL32I     偏移，並進入狀態 61
+    FSET        偏移，並進入狀態 62
+    DSET        偏移，並進入狀態 63
+    G2R         偏移，並進入狀態 64
+    GLD         偏移，並進入狀態 65
+    GST         偏移，並進入狀態 66
+    I2F         偏移，並進入狀態 67
+    I2I         偏移，並進入狀態 68
+    IADD        偏移，並進入狀態 69
+    IADD32      偏移，並進入狀態 70
+    IADD32I     偏移，並進入狀態 71
+    IMAD        偏移，並進入狀態 72
+    ISAD        偏移，並進入狀態 73
+    IMAD24      偏移，並進入狀態 74
+    IMAD32I     偏移，並進入狀態 75
+    IMAD32      偏移，並進入狀態 76
+    IADDCARRY   偏移，並進入狀態 77
+    IMUL        偏移，並進入狀態 78
+    IMUL24      偏移，並進入狀態 79
+    IMUL24H     偏移，並進入狀態 80
+    IMULS24     偏移，並進入狀態 81
+    IMUL32      偏移，並進入狀態 82
+    IMUL32S24   偏移，並進入狀態 83
+    IMUL32U24   偏移，並進入狀態 84
+    IMUL32I     偏移，並進入狀態 85
+    IMUL32I24   偏移，並進入狀態 86
+    IMUL32IS24  偏移，並進入狀態 87
+    ISET        偏移，並進入狀態 88
+    LG2         偏移，並進入狀態 89
+    LLD         偏移，並進入狀態 90
+    LST         偏移，並進入狀態 91
+    MOV         偏移，並進入狀態 92
+    MOV32       偏移，並進入狀態 93
+    MVC         偏移，並進入狀態 94
+    MVI         偏移，並進入狀態 95
+    NOP         偏移，並進入狀態 96
+    NOT         偏移，並進入狀態 97
+    NOTS        偏移，並進入狀態 98
+    OR          偏移，並進入狀態 99
+    ORS         偏移，並進入狀態 100
+    R2A         偏移，並進入狀態 101
+    R2G         偏移，並進入狀態 102
+    R2GU16U8    偏移，並進入狀態 103
+    RCP         偏移，並進入狀態 104
+    RCP32       偏移，並進入狀態 105
+    RET         偏移，並進入狀態 106
+    RRO         偏移，並進入狀態 107
+    RSQ         偏移，並進入狀態 108
+    SIN         偏移，並進入狀態 109
+    SHL         偏移，並進入狀態 110
+    SHR         偏移，並進入狀態 111
+    SSY         偏移，並進入狀態 112
+    XOR         偏移，並進入狀態 113
+    XORS        偏移，並進入狀態 114
+    S2R         偏移，並進入狀態 115
+    SASS_LD     偏移，並進入狀態 116
+    STS         偏移，並進入狀態 117
+    LDS         偏移，並進入狀態 118
+    SASS_ST     偏移，並進入狀態 119
+    IMIN        偏移，並進入狀態 120
+    IMAX        偏移，並進入狀態 121
+    A2R         偏移，並進入狀態 122
+    FMAX        偏移，並進入狀態 123
+    FMIN        偏移，並進入狀態 124
+    TEX         偏移，並進入狀態 125
+    TEX32       偏移，並進入狀態 126
+    C2R         偏移，並進入狀態 127
+    EXIT        偏移，並進入狀態 128
+    BRK         偏移，並進入狀態 131
+    R2C         偏移，並進入狀態 132
+    VOTE        偏移，並進入狀態 134
+
+    simpleInstructions  進入狀態 186
+
+
+狀態 147
+
+  132 modifier: DOTBEXT .
+
+    $預設  使用規則 132 以縮減 (modifier)
+
+
+狀態 148
+
+  133 modifier: DOTS .
+
+    $預設  使用規則 133 以縮減 (modifier)
+
+
+狀態 149
+
+  134 modifier: DOTSFU .
+
+    $預設  使用規則 134 以縮減 (modifier)
+
+
+狀態 150
+
+  135 modifier: DOTTRUNC .
+
+    $預設  使用規則 135 以縮減 (modifier)
+
+
+狀態 151
+
+  136 modifier: DOTCEIL .
+
+    $預設  使用規則 136 以縮減 (modifier)
+
+
+狀態 152
+
+  137 modifier: DOTFLOOR .
+
+    $預設  使用規則 137 以縮減 (modifier)
+
+
+狀態 153
+
+  142 modifier: DOTIR .
+
+    $預設  使用規則 142 以縮減 (modifier)
+
+
+狀態 154
+
+  143 modifier: DOTUN .
+
+    $預設  使用規則 143 以縮減 (modifier)
+
+
+狀態 155
+
+  144 modifier: DOTNODEP .
+
+    $預設  使用規則 144 以縮減 (modifier)
+
+
+狀態 156
+
+  145 modifier: DOTANY .
+
+    $預設  使用規則 145 以縮減 (modifier)
+
+
+狀態 157
+
+  146 modifier: DOTALL .
+
+    $預設  使用規則 146 以縮減 (modifier)
+
+
+狀態 158
+
+  147 opTypes: DOTF16 .
+
+    $預設  使用規則 147 以縮減 (opTypes)
+
+
+狀態 159
+
+  148 opTypes: DOTF32 .
+
+    $預設  使用規則 148 以縮減 (opTypes)
+
+
+狀態 160
+
+  149 opTypes: DOTF64 .
+
+    $預設  使用規則 149 以縮減 (opTypes)
+
+
+狀態 161
+
+  150 opTypes: DOTS8 .
+
+    $預設  使用規則 150 以縮減 (opTypes)
+
+
+狀態 162
+
+  151 opTypes: DOTS16 .
+
+    $預設  使用規則 151 以縮減 (opTypes)
+
+
+狀態 163
+
+  152 opTypes: DOTS32 .
+
+    $預設  使用規則 152 以縮減 (opTypes)
+
+
+狀態 164
+
+  153 opTypes: DOTS64 .
+
+    $預設  使用規則 153 以縮減 (opTypes)
+
+
+狀態 165
+
+  154 opTypes: DOTS128 .
+
+    $預設  使用規則 154 以縮減 (opTypes)
+
+
+狀態 166
+
+  155 opTypes: DOTU8 .
+
+    $預設  使用規則 155 以縮減 (opTypes)
+
+
+狀態 167
+
+  156 opTypes: DOTU16 .
+
+    $預設  使用規則 156 以縮減 (opTypes)
+
+
+狀態 168
+
+  157 opTypes: DOTU32 .
+
+    $預設  使用規則 157 以縮減 (opTypes)
+
+
+狀態 169
+
+  158 opTypes: DOTU24 .
+
+    $預設  使用規則 158 以縮減 (opTypes)
+
+
+狀態 170
+
+  159 opTypes: DOTU64 .
+
+    $預設  使用規則 159 以縮減 (opTypes)
+
+
+狀態 171
+
+  160 opTypes: DOTHI .
+
+    $預設  使用規則 160 以縮減 (opTypes)
+
+
+狀態 172
+
+  138 modifier: DOTX .
+
+    $預設  使用規則 138 以縮減 (modifier)
+
+
+狀態 173
+
+  139 modifier: DOTE .
+
+    $預設  使用規則 139 以縮減 (modifier)
+
+
+狀態 174
+
+  140 modifier: DOTRED .
+
+    $預設  使用規則 140 以縮減 (modifier)
+
+
+狀態 175
+
+  141 modifier: DOTPOPC .
+
+    $預設  使用規則 141 以縮減 (modifier)
+
+
+狀態 176
+
+   21 assemblyInstruction: baseInstruction modifierList . operandList
+  162 operandList: . operandList $@8 operand
+  163            | . %empty
+
+    $預設  使用規則 163 以縮減 (operandList)
+
+    operandList  進入狀態 187
+
+
+狀態 177
+
+  129 modifierList: . modifier modifierList
+  129             | modifier . modifierList
+  130             | . %empty  [COS, EX2, SIN, EQ, EQU, GE, GEU, GT, GTU, LE, LEU, LT, LTU, NE, NEU, REGISTER, REGISTERLO, REGISTERHI, OFFSETREGISTER, PREDREGISTER, PREDREGISTER3, SREGISTER, SMEMLOCATION, ABSSMEMLOCATION, GMEMLOCATION, CMEMLOCATION, LMEMLOCATION, IDENTIFIER, HEXLITERAL, LEFTBRACKET, PIPE, TILDE, NEWLINE, SEMICOLON, OSQBRACKET]
+  131 modifier: . opTypes
+  132         | . DOTBEXT
+  133         | . DOTS
+  134         | . DOTSFU
+  135         | . DOTTRUNC
+  136         | . DOTCEIL
+  137         | . DOTFLOOR
+  138         | . DOTX
+  139         | . DOTE
+  140         | . DOTRED
+  141         | . DOTPOPC
+  142         | . DOTIR
+  143         | . DOTUN
+  144         | . DOTNODEP
+  145         | . DOTANY
+  146         | . DOTALL
+  147 opTypes: . DOTF16
+  148        | . DOTF32
+  149        | . DOTF64
+  150        | . DOTS8
+  151        | . DOTS16
+  152        | . DOTS32
+  153        | . DOTS64
+  154        | . DOTS128
+  155        | . DOTU8
+  156        | . DOTU16
+  157        | . DOTU32
+  158        | . DOTU24
+  159        | . DOTU64
+  160        | . DOTHI
+
+    DOTBEXT   偏移，並進入狀態 147
+    DOTS      偏移，並進入狀態 148
+    DOTSFU    偏移，並進入狀態 149
+    DOTTRUNC  偏移，並進入狀態 150
+    DOTCEIL   偏移，並進入狀態 151
+    DOTFLOOR  偏移，並進入狀態 152
+    DOTIR     偏移，並進入狀態 153
+    DOTUN     偏移，並進入狀態 154
+    DOTNODEP  偏移，並進入狀態 155
+    DOTANY    偏移，並進入狀態 156
+    DOTALL    偏移，並進入狀態 157
+    DOTF16    偏移，並進入狀態 158
+    DOTF32    偏移，並進入狀態 159
+    DOTF64    偏移，並進入狀態 160
+    DOTS8     偏移，並進入狀態 161
+    DOTS16    偏移，並進入狀態 162
+    DOTS32    偏移，並進入狀態 163
+    DOTS64    偏移，並進入狀態 164
+    DOTS128   偏移，並進入狀態 165
+    DOTU8     偏移，並進入狀態 166
+    DOTU16    偏移，並進入狀態 167
+    DOTU32    偏移，並進入狀態 168
+    DOTU24    偏移，並進入狀態 169
+    DOTU64    偏移，並進入狀態 170
+    DOTHI     偏移，並進入狀態 171
+    DOTX      偏移，並進入狀態 172
+    DOTE      偏移，並進入狀態 173
+    DOTRED    偏移，並進入狀態 174
+    DOTPOPC   偏移，並進入狀態 175
+
+    $預設  使用規則 130 以縮減 (modifierList)
+
+    modifierList  進入狀態 188
+    modifier      進入狀態 177
+    opTypes       進入狀態 178
+
+
+狀態 178
+
+  131 modifier: opTypes .
+
+    $預設  使用規則 131 以縮減 (modifier)
+
+
+狀態 179
+
+  203 instructionPredicate: PREDREGISTER3 . predicateModifier
+  204                     | PREDREGISTER3 .  [HEXLITERAL, RIGHTBRACKET]
+  210 predicateModifier: . DOTEQ
+  211                  | . DOTEQU
+  212                  | . DOTFALSE
+  213                  | . DOTGE
+  214                  | . DOTGEU
+  215                  | . DOTGT
+  216                  | . DOTGTU
+  217                  | . DOTLE
+  218                  | . DOTLEU
+  219                  | . DOTLT
+  220                  | . DOTLTU
+  221                  | . DOTNE
+  222                  | . DOTNEU
+  223                  | . DOTNSF
+  224                  | . DOTSF
+  225                  | . DOTCARRY
+
+    DOTEQ     偏移，並進入狀態 189
+    DOTEQU    偏移，並進入狀態 190
+    DOTFALSE  偏移，並進入狀態 191
+    DOTGE     偏移，並進入狀態 192
+    DOTGEU    偏移，並進入狀態 193
+    DOTGT     偏移，並進入狀態 194
+    DOTGTU    偏移，並進入狀態 195
+    DOTLE     偏移，並進入狀態 196
+    DOTLEU    偏移，並進入狀態 197
+    DOTLT     偏移，並進入狀態 198
+    DOTLTU    偏移，並進入狀態 199
+    DOTNE     偏移，並進入狀態 200
+    DOTNEU    偏移，並進入狀態 201
+    DOTNSF    偏移，並進入狀態 202
+    DOTSF     偏移，並進入狀態 203
+    DOTCARRY  偏移，並進入狀態 204
+
+    $預設  使用規則 204 以縮減 (instructionPredicate)
+
+    predicateModifier  進入狀態 205
+
+
+狀態 180
+
+  122 branchInstructions: BRA $@4 instructionPredicate . HEXLITERAL
+
+    HEXLITERAL  偏移，並進入狀態 206
+
+
+狀態 181
+
+  124 branchInstructions: BRA $@5 HEXLITERAL .
+
+    $預設  使用規則 124 以縮減 (branchInstructions)
+
+
+狀態 182
+
+  126 branchInstructions: CAL $@6 HEXLITERAL .
+
+    $預設  使用規則 126 以縮減 (branchInstructions)
+
+
+狀態 183
+
+  128 branchInstructions: CAL $@7 DOTNOINC . HEXLITERAL
+
+    HEXLITERAL  偏移，並進入狀態 207
+
+
+狀態 184
+
+   24 baseInstruction: GRED DOT simpleInstructions .
+
+    $預設  使用規則 24 以縮減 (baseInstruction)
+
+
+狀態 185
+
+  120 pbkInstruction: PBK $@3 HEXLITERAL .
+
+    $預設  使用規則 120 以縮減 (pbkInstruction)
+
+
+狀態 186
+
+   25 baseInstruction: GATOM DOT simpleInstructions .
+
+    $預設  使用規則 25 以縮減 (baseInstruction)
+
+
+狀態 187
+
+   21 assemblyInstruction: baseInstruction modifierList operandList .  [NEWLINE, SEMICOLON]
+  161 $@8: . %empty  [COS, EX2, SIN, EQ, EQU, GE, GEU, GT, GTU, LE, LEU, LT, LTU, NE, NEU, REGISTER, REGISTERLO, REGISTERHI, OFFSETREGISTER, PREDREGISTER, PREDREGISTER3, SREGISTER, SMEMLOCATION, ABSSMEMLOCATION, GMEMLOCATION, CMEMLOCATION, LMEMLOCATION, IDENTIFIER, HEXLITERAL, LEFTBRACKET, PIPE, TILDE, OSQBRACKET]
+  162 operandList: operandList . $@8 operand
+
+    NEWLINE    使用規則 21 以縮減 (assemblyInstruction)
+    SEMICOLON  使用規則 21 以縮減 (assemblyInstruction)
+    $預設    使用規則 161 以縮減 ($@8)
+
+    $@8  進入狀態 208
+
+
+狀態 188
+
+  129 modifierList: modifier modifierList .
+
+    $預設  使用規則 129 以縮減 (modifierList)
+
+
+狀態 189
+
+  210 predicateModifier: DOTEQ .
+
+    $預設  使用規則 210 以縮減 (predicateModifier)
+
+
+狀態 190
+
+  211 predicateModifier: DOTEQU .
+
+    $預設  使用規則 211 以縮減 (predicateModifier)
+
+
+狀態 191
+
+  212 predicateModifier: DOTFALSE .
+
+    $預設  使用規則 212 以縮減 (predicateModifier)
+
+
+狀態 192
+
+  213 predicateModifier: DOTGE .
+
+    $預設  使用規則 213 以縮減 (predicateModifier)
+
+
+狀態 193
+
+  214 predicateModifier: DOTGEU .
+
+    $預設  使用規則 214 以縮減 (predicateModifier)
+
+
+狀態 194
+
+  215 predicateModifier: DOTGT .
+
+    $預設  使用規則 215 以縮減 (predicateModifier)
+
+
+狀態 195
+
+  216 predicateModifier: DOTGTU .
+
+    $預設  使用規則 216 以縮減 (predicateModifier)
+
+
+狀態 196
+
+  217 predicateModifier: DOTLE .
+
+    $預設  使用規則 217 以縮減 (predicateModifier)
+
+
+狀態 197
+
+  218 predicateModifier: DOTLEU .
+
+    $預設  使用規則 218 以縮減 (predicateModifier)
+
+
+狀態 198
+
+  219 predicateModifier: DOTLT .
+
+    $預設  使用規則 219 以縮減 (predicateModifier)
+
+
+狀態 199
+
+  220 predicateModifier: DOTLTU .
+
+    $預設  使用規則 220 以縮減 (predicateModifier)
+
+
+狀態 200
+
+  221 predicateModifier: DOTNE .
+
+    $預設  使用規則 221 以縮減 (predicateModifier)
+
+
+狀態 201
+
+  222 predicateModifier: DOTNEU .
+
+    $預設  使用規則 222 以縮減 (predicateModifier)
+
+
+狀態 202
+
+  223 predicateModifier: DOTNSF .
+
+    $預設  使用規則 223 以縮減 (predicateModifier)
+
+
+狀態 203
+
+  224 predicateModifier: DOTSF .
+
+    $預設  使用規則 224 以縮減 (predicateModifier)
+
+
+狀態 204
+
+  225 predicateModifier: DOTCARRY .
+
+    $預設  使用規則 225 以縮減 (predicateModifier)
+
+
+狀態 205
+
+  203 instructionPredicate: PREDREGISTER3 predicateModifier .
+
+    $預設  使用規則 203 以縮減 (instructionPredicate)
+
+
+狀態 206
+
+  122 branchInstructions: BRA $@4 instructionPredicate HEXLITERAL .
+
+    $預設  使用規則 122 以縮減 (branchInstructions)
+
+
+狀態 207
+
+  128 branchInstructions: CAL $@7 DOTNOINC HEXLITERAL .
+
+    $預設  使用規則 128 以縮減 (branchInstructions)
+
+
+狀態 208
+
+  162 operandList: operandList $@8 . operand
+  164 operand: . registerlocation
+  165        | . PIPE registerlocation PIPE
+  166        | . TILDE registerlocation
+  167        | . LEFTBRACKET instructionPredicate RIGHTBRACKET
+  168        | . memorylocation opTypes
+  169        | . memorylocation
+  170        | . immediateValue
+  171        | . extraModifier
+  172        | . operandPredicate
+  173        | . preOperand
+  174 registerlocation: . REGISTER regMod
+  175                 | . OSQBRACKET REGISTER CSQBRACKET
+  176                 | . REGISTERLO
+  177                 | . REGISTERHI
+  178                 | . SREGISTER
+  179                 | . OFFSETREGISTER
+  180                 | . PREDREGISTER PREDREGISTER2
+  181                 | . PREDREGISTER REGISTER
+  184 memorylocation: . SMEMLOCATION
+  185               | . ABSSMEMLOCATION
+  186               | . GMEMLOCATION
+  187               | . CMEMLOCATION
+  188               | . LMEMLOCATION
+  189 immediateValue: . IDENTIFIER
+  190               | . HEXLITERAL
+  191 extraModifier: . EQ
+  192              | . EQU
+  193              | . GE
+  194              | . GEU
+  195              | . GT
+  196              | . GTU
+  197              | . LE
+  198              | . LEU
+  199              | . LT
+  200              | . LTU
+  201              | . NE
+  202              | . NEU
+  205 operandPredicate: . PREDREGISTER3 predicateModifier
+  206                 | . PREDREGISTER3
+  207 preOperand: . EX2
+  208           | . SIN
+  209           | . COS
+
+    COS              偏移，並進入狀態 209
+    EX2              偏移，並進入狀態 210
+    SIN              偏移，並進入狀態 211
+    EQ               偏移，並進入狀態 212
+    EQU              偏移，並進入狀態 213
+    GE               偏移，並進入狀態 214
+    GEU              偏移，並進入狀態 215
+    GT               偏移，並進入狀態 216
+    GTU              偏移，並進入狀態 217
+    LE               偏移，並進入狀態 218
+    LEU              偏移，並進入狀態 219
+    LT               偏移，並進入狀態 220
+    LTU              偏移，並進入狀態 221
+    NE               偏移，並進入狀態 222
+    NEU              偏移，並進入狀態 223
+    REGISTER         偏移，並進入狀態 224
+    REGISTERLO       偏移，並進入狀態 225
+    REGISTERHI       偏移，並進入狀態 226
+    OFFSETREGISTER   偏移，並進入狀態 227
+    PREDREGISTER     偏移，並進入狀態 228
+    PREDREGISTER3    偏移，並進入狀態 229
+    SREGISTER        偏移，並進入狀態 230
+    SMEMLOCATION     偏移，並進入狀態 231
+    ABSSMEMLOCATION  偏移，並進入狀態 232
+    GMEMLOCATION     偏移，並進入狀態 233
+    CMEMLOCATION     偏移，並進入狀態 234
+    LMEMLOCATION     偏移，並進入狀態 235
+    IDENTIFIER       偏移，並進入狀態 236
+    HEXLITERAL       偏移，並進入狀態 237
+    LEFTBRACKET      偏移，並進入狀態 238
+    PIPE             偏移，並進入狀態 239
+    TILDE            偏移，並進入狀態 240
+    OSQBRACKET       偏移，並進入狀態 241
+
+    operand           進入狀態 242
+    registerlocation  進入狀態 243
+    memorylocation    進入狀態 244
+    immediateValue    進入狀態 245
+    extraModifier     進入狀態 246
+    operandPredicate  進入狀態 247
+    preOperand        進入狀態 248
+
+
+狀態 209
+
+  209 preOperand: COS .
+
+    $預設  使用規則 209 以縮減 (preOperand)
+
+
+狀態 210
+
+  207 preOperand: EX2 .
+
+    $預設  使用規則 207 以縮減 (preOperand)
+
+
+狀態 211
+
+  208 preOperand: SIN .
+
+    $預設  使用規則 208 以縮減 (preOperand)
+
+
+狀態 212
+
+  191 extraModifier: EQ .
+
+    $預設  使用規則 191 以縮減 (extraModifier)
+
+
+狀態 213
+
+  192 extraModifier: EQU .
+
+    $預設  使用規則 192 以縮減 (extraModifier)
+
+
+狀態 214
+
+  193 extraModifier: GE .
+
+    $預設  使用規則 193 以縮減 (extraModifier)
+
+
+狀態 215
+
+  194 extraModifier: GEU .
+
+    $預設  使用規則 194 以縮減 (extraModifier)
+
+
+狀態 216
+
+  195 extraModifier: GT .
+
+    $預設  使用規則 195 以縮減 (extraModifier)
+
+
+狀態 217
+
+  196 extraModifier: GTU .
+
+    $預設  使用規則 196 以縮減 (extraModifier)
+
+
+狀態 218
+
+  197 extraModifier: LE .
+
+    $預設  使用規則 197 以縮減 (extraModifier)
+
+
+狀態 219
+
+  198 extraModifier: LEU .
+
+    $預設  使用規則 198 以縮減 (extraModifier)
+
+
+狀態 220
+
+  199 extraModifier: LT .
+
+    $預設  使用規則 199 以縮減 (extraModifier)
+
+
+狀態 221
+
+  200 extraModifier: LTU .
+
+    $預設  使用規則 200 以縮減 (extraModifier)
+
+
+狀態 222
+
+  201 extraModifier: NE .
+
+    $預設  使用規則 201 以縮減 (extraModifier)
+
+
+狀態 223
+
+  202 extraModifier: NEU .
+
+    $預設  使用規則 202 以縮減 (extraModifier)
+
+
+狀態 224
+
+  174 registerlocation: REGISTER . regMod
+  182 regMod: . DOTCC
+  183       | . %empty  [COS, EX2, SIN, EQ, EQU, GE, GEU, GT, GTU, LE, LEU, LT, LTU, NE, NEU, REGISTER, REGISTERLO, REGISTERHI, OFFSETREGISTER, PREDREGISTER, PREDREGISTER3, SREGISTER, SMEMLOCATION, ABSSMEMLOCATION, GMEMLOCATION, CMEMLOCATION, LMEMLOCATION, IDENTIFIER, HEXLITERAL, LEFTBRACKET, PIPE, TILDE, NEWLINE, SEMICOLON, OSQBRACKET]
+
+    DOTCC  偏移，並進入狀態 249
+
+    $預設  使用規則 183 以縮減 (regMod)
+
+    regMod  進入狀態 250
+
+
+狀態 225
+
+  176 registerlocation: REGISTERLO .
+
+    $預設  使用規則 176 以縮減 (registerlocation)
+
+
+狀態 226
+
+  177 registerlocation: REGISTERHI .
+
+    $預設  使用規則 177 以縮減 (registerlocation)
+
+
+狀態 227
+
+  179 registerlocation: OFFSETREGISTER .
+
+    $預設  使用規則 179 以縮減 (registerlocation)
+
+
+狀態 228
+
+  180 registerlocation: PREDREGISTER . PREDREGISTER2
+  181                 | PREDREGISTER . REGISTER
+
+    REGISTER       偏移，並進入狀態 251
+    PREDREGISTER2  偏移，並進入狀態 252
+
+
+狀態 229
+
+  205 operandPredicate: PREDREGISTER3 . predicateModifier
+  206                 | PREDREGISTER3 .  [COS, EX2, SIN, EQ, EQU, GE, GEU, GT, GTU, LE, LEU, LT, LTU, NE, NEU, REGISTER, REGISTERLO, REGISTERHI, OFFSETREGISTER, PREDREGISTER, PREDREGISTER3, SREGISTER, SMEMLOCATION, ABSSMEMLOCATION, GMEMLOCATION, CMEMLOCATION, LMEMLOCATION, IDENTIFIER, HEXLITERAL, LEFTBRACKET, PIPE, TILDE, NEWLINE, SEMICOLON, OSQBRACKET]
+  210 predicateModifier: . DOTEQ
+  211                  | . DOTEQU
+  212                  | . DOTFALSE
+  213                  | . DOTGE
+  214                  | . DOTGEU
+  215                  | . DOTGT
+  216                  | . DOTGTU
+  217                  | . DOTLE
+  218                  | . DOTLEU
+  219                  | . DOTLT
+  220                  | . DOTLTU
+  221                  | . DOTNE
+  222                  | . DOTNEU
+  223                  | . DOTNSF
+  224                  | . DOTSF
+  225                  | . DOTCARRY
+
+    DOTEQ     偏移，並進入狀態 189
+    DOTEQU    偏移，並進入狀態 190
+    DOTFALSE  偏移，並進入狀態 191
+    DOTGE     偏移，並進入狀態 192
+    DOTGEU    偏移，並進入狀態 193
+    DOTGT     偏移，並進入狀態 194
+    DOTGTU    偏移，並進入狀態 195
+    DOTLE     偏移，並進入狀態 196
+    DOTLEU    偏移，並進入狀態 197
+    DOTLT     偏移，並進入狀態 198
+    DOTLTU    偏移，並進入狀態 199
+    DOTNE     偏移，並進入狀態 200
+    DOTNEU    偏移，並進入狀態 201
+    DOTNSF    偏移，並進入狀態 202
+    DOTSF     偏移，並進入狀態 203
+    DOTCARRY  偏移，並進入狀態 204
+
+    $預設  使用規則 206 以縮減 (operandPredicate)
+
+    predicateModifier  進入狀態 253
+
+
+狀態 230
+
+  178 registerlocation: SREGISTER .
+
+    $預設  使用規則 178 以縮減 (registerlocation)
+
+
+狀態 231
+
+  184 memorylocation: SMEMLOCATION .
+
+    $預設  使用規則 184 以縮減 (memorylocation)
+
+
+狀態 232
+
+  185 memorylocation: ABSSMEMLOCATION .
+
+    $預設  使用規則 185 以縮減 (memorylocation)
+
+
+狀態 233
+
+  186 memorylocation: GMEMLOCATION .
+
+    $預設  使用規則 186 以縮減 (memorylocation)
+
+
+狀態 234
+
+  187 memorylocation: CMEMLOCATION .
+
+    $預設  使用規則 187 以縮減 (memorylocation)
+
+
+狀態 235
+
+  188 memorylocation: LMEMLOCATION .
+
+    $預設  使用規則 188 以縮減 (memorylocation)
+
+
+狀態 236
+
+  189 immediateValue: IDENTIFIER .
+
+    $預設  使用規則 189 以縮減 (immediateValue)
+
+
+狀態 237
+
+  190 immediateValue: HEXLITERAL .
+
+    $預設  使用規則 190 以縮減 (immediateValue)
+
+
+狀態 238
+
+  167 operand: LEFTBRACKET . instructionPredicate RIGHTBRACKET
+  203 instructionPredicate: . PREDREGISTER3 predicateModifier
+  204                     | . PREDREGISTER3
+
+    PREDREGISTER3  偏移，並進入狀態 179
+
+    instructionPredicate  進入狀態 254
+
+
+狀態 239
+
+  165 operand: PIPE . registerlocation PIPE
+  174 registerlocation: . REGISTER regMod
+  175                 | . OSQBRACKET REGISTER CSQBRACKET
+  176                 | . REGISTERLO
+  177                 | . REGISTERHI
+  178                 | . SREGISTER
+  179                 | . OFFSETREGISTER
+  180                 | . PREDREGISTER PREDREGISTER2
+  181                 | . PREDREGISTER REGISTER
+
+    REGISTER        偏移，並進入狀態 224
+    REGISTERLO      偏移，並進入狀態 225
+    REGISTERHI      偏移，並進入狀態 226
+    OFFSETREGISTER  偏移，並進入狀態 227
+    PREDREGISTER    偏移，並進入狀態 228
+    SREGISTER       偏移，並進入狀態 230
+    OSQBRACKET      偏移，並進入狀態 241
+
+    registerlocation  進入狀態 255
+
+
+狀態 240
+
+  166 operand: TILDE . registerlocation
+  174 registerlocation: . REGISTER regMod
+  175                 | . OSQBRACKET REGISTER CSQBRACKET
+  176                 | . REGISTERLO
+  177                 | . REGISTERHI
+  178                 | . SREGISTER
+  179                 | . OFFSETREGISTER
+  180                 | . PREDREGISTER PREDREGISTER2
+  181                 | . PREDREGISTER REGISTER
+
+    REGISTER        偏移，並進入狀態 224
+    REGISTERLO      偏移，並進入狀態 225
+    REGISTERHI      偏移，並進入狀態 226
+    OFFSETREGISTER  偏移，並進入狀態 227
+    PREDREGISTER    偏移，並進入狀態 228
+    SREGISTER       偏移，並進入狀態 230
+    OSQBRACKET      偏移，並進入狀態 241
+
+    registerlocation  進入狀態 256
+
+
+狀態 241
+
+  175 registerlocation: OSQBRACKET . REGISTER CSQBRACKET
+
+    REGISTER  偏移，並進入狀態 257
+
+
+狀態 242
+
+  162 operandList: operandList $@8 operand .
+
+    $預設  使用規則 162 以縮減 (operandList)
+
+
+狀態 243
+
+  164 operand: registerlocation .
+
+    $預設  使用規則 164 以縮減 (operand)
+
+
+狀態 244
+
+  147 opTypes: . DOTF16
+  148        | . DOTF32
+  149        | . DOTF64
+  150        | . DOTS8
+  151        | . DOTS16
+  152        | . DOTS32
+  153        | . DOTS64
+  154        | . DOTS128
+  155        | . DOTU8
+  156        | . DOTU16
+  157        | . DOTU32
+  158        | . DOTU24
+  159        | . DOTU64
+  160        | . DOTHI
+  168 operand: memorylocation . opTypes
+  169        | memorylocation .  [COS, EX2, SIN, EQ, EQU, GE, GEU, GT, GTU, LE, LEU, LT, LTU, NE, NEU, REGISTER, REGISTERLO, REGISTERHI, OFFSETREGISTER, PREDREGISTER, PREDREGISTER3, SREGISTER, SMEMLOCATION, ABSSMEMLOCATION, GMEMLOCATION, CMEMLOCATION, LMEMLOCATION, IDENTIFIER, HEXLITERAL, LEFTBRACKET, PIPE, TILDE, NEWLINE, SEMICOLON, OSQBRACKET]
+
+    DOTF16   偏移，並進入狀態 158
+    DOTF32   偏移，並進入狀態 159
+    DOTF64   偏移，並進入狀態 160
+    DOTS8    偏移，並進入狀態 161
+    DOTS16   偏移，並進入狀態 162
+    DOTS32   偏移，並進入狀態 163
+    DOTS64   偏移，並進入狀態 164
+    DOTS128  偏移，並進入狀態 165
+    DOTU8    偏移，並進入狀態 166
+    DOTU16   偏移，並進入狀態 167
+    DOTU32   偏移，並進入狀態 168
+    DOTU24   偏移，並進入狀態 169
+    DOTU64   偏移，並進入狀態 170
+    DOTHI    偏移，並進入狀態 171
+
+    $預設  使用規則 169 以縮減 (operand)
+
+    opTypes  進入狀態 258
+
+
+狀態 245
+
+  170 operand: immediateValue .
+
+    $預設  使用規則 170 以縮減 (operand)
+
+
+狀態 246
+
+  171 operand: extraModifier .
+
+    $預設  使用規則 171 以縮減 (operand)
+
+
+狀態 247
+
+  172 operand: operandPredicate .
+
+    $預設  使用規則 172 以縮減 (operand)
+
+
+狀態 248
+
+  173 operand: preOperand .
+
+    $預設  使用規則 173 以縮減 (operand)
+
+
+狀態 249
+
+  182 regMod: DOTCC .
+
+    $預設  使用規則 182 以縮減 (regMod)
+
+
+狀態 250
+
+  174 registerlocation: REGISTER regMod .
+
+    $預設  使用規則 174 以縮減 (registerlocation)
+
+
+狀態 251
+
+  181 registerlocation: PREDREGISTER REGISTER .
+
+    $預設  使用規則 181 以縮減 (registerlocation)
+
+
+狀態 252
+
+  180 registerlocation: PREDREGISTER PREDREGISTER2 .
+
+    $預設  使用規則 180 以縮減 (registerlocation)
+
+
+狀態 253
+
+  205 operandPredicate: PREDREGISTER3 predicateModifier .
+
+    $預設  使用規則 205 以縮減 (operandPredicate)
+
+
+狀態 254
+
+  167 operand: LEFTBRACKET instructionPredicate . RIGHTBRACKET
+
+    RIGHTBRACKET  偏移，並進入狀態 259
+
+
+狀態 255
+
+  165 operand: PIPE registerlocation . PIPE
+
+    PIPE  偏移，並進入狀態 260
+
+
+狀態 256
+
+  166 operand: TILDE registerlocation .
+
+    $預設  使用規則 166 以縮減 (operand)
+
+
+狀態 257
+
+  175 registerlocation: OSQBRACKET REGISTER . CSQBRACKET
+
+    CSQBRACKET  偏移，並進入狀態 261
+
+
+狀態 258
+
+  168 operand: memorylocation opTypes .
+
+    $預設  使用規則 168 以縮減 (operand)
+
+
+狀態 259
+
+  167 operand: LEFTBRACKET instructionPredicate RIGHTBRACKET .
+
+    $預設  使用規則 167 以縮減 (operand)
+
+
+狀態 260
+
+  165 operand: PIPE registerlocation PIPE .
+
+    $預設  使用規則 165 以縮減 (operand)
+
+
+狀態 261
+
+  175 registerlocation: OSQBRACKET REGISTER CSQBRACKET .
+
+    $預設  使用規則 175 以縮減 (registerlocation)
